@@ -32,7 +32,6 @@ export const es: Messages = {
   'nav.account': 'Cuenta',
 
   'language.label': 'Idioma',
-  'language.hint': 'Elige el idioma que se usa en toda la aplicación.',
   'language.en': 'English',
   'language.es': 'Español',
   'language.sk': 'Slovenčina',

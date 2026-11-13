@@ -33,7 +33,6 @@ export const en = {
 
   // Language
   'language.label': 'Language',
-  'language.hint': 'Choose the language used throughout the app.',
   'language.en': 'English',
   'language.es': 'Español',
   'language.sk': 'Slovenčina',

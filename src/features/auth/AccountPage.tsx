@@ -29,13 +29,8 @@ export function AccountPage() {
 
   return (
     <>
-      <PageHeader title={t('account.title')} />
+      <PageHeader title={t('account.title')} right={<LanguageSelect />} />
       <SpaceSettings />
-      <h2 className="mt-8 mb-3 text-lg font-bold">{t('language.label')}</h2>
-      <section className="rounded-2xl border border-slate-200 bg-white p-4">
-        <LanguageSelect />
-        <p className="mt-2 text-sm text-slate-600">{t('language.hint')}</p>
-      </section>
       <h2 className="mt-8 mb-3 text-lg font-bold">{t('account.signIn')}</h2>
       {isAnonymous ? (
         <section className="rounded-2xl border border-slate-200 bg-white p-4">

@@ -71,24 +71,19 @@ export function LanguageSelect() {
 
   return (
     <div ref={root} className="relative">
-      <span id="language-label" className="mb-1 block text-sm font-medium text-slate-700">
-        {t('language.label')}
-      </span>
       <button
         type="button"
         aria-haspopup="listbox"
         aria-expanded={open}
-        aria-labelledby="language-label language-button"
-        id="language-button"
+        aria-label={`${t('language.label')}: ${t(`language.${language}`)}`}
         onClick={() => setOpen((o) => !o)}
-        className="flex min-h-12 w-full items-center gap-3 rounded-xl border border-slate-300 bg-white px-4 text-left text-slate-900"
+        className="flex h-11 items-center gap-2 rounded-xl border border-slate-300 bg-white px-3 hover:bg-slate-50"
       >
         <Flag language={language} />
-        <span className="flex-1">{t(`language.${language}`)}</span>
         <svg
           aria-hidden
-          width="18"
-          height="18"
+          width="16"
+          height="16"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -104,8 +99,8 @@ export function LanguageSelect() {
       {open && (
         <ul
           role="listbox"
-          aria-labelledby="language-label"
-          className="absolute z-30 mt-2 w-full overflow-hidden rounded-2xl bg-white py-1 shadow-xl ring-1 ring-slate-200"
+          aria-label={t('language.label')}
+          className="absolute right-0 z-30 mt-2 w-56 overflow-hidden rounded-2xl bg-white py-1 shadow-xl ring-1 ring-slate-200"
         >
           {LANGUAGES.map((l) => (
             <li key={l} role="option" aria-selected={l === language}>

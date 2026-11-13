@@ -31,7 +31,6 @@ export const sk: Messages = {
   'nav.account': 'Účet',
 
   'language.label': 'Jazyk',
-  'language.hint': 'Vyberte jazyk používaný v celej aplikácii.',
   'language.en': 'English',
   'language.es': 'Español',
   'language.sk': 'Slovenčina',
