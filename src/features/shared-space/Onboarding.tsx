@@ -3,9 +3,13 @@ import { useQueryClient } from '@tanstack/react-query'
 import { Button, Field, FullScreen, InlineError, inputClass } from '@/components/ui'
 import { createSpace, joinSpace } from '@/services/couple.service'
 import { toAppError } from '@/services/errors'
+import { useAuth } from '@/features/auth/AuthProvider'
+import { SignInScreen } from '@/features/auth/SignInScreen'
 
 export function Onboarding({ onCreated }: { onCreated: (code: string) => void }) {
   const qc = useQueryClient()
+  const { reload } = useAuth()
+  const [signingIn, setSigningIn] = useState(false)
   const [mode, setMode] = useState<'create' | 'join'>('create')
   const [name, setName] = useState('')
   const [code, setCode] = useState('')
@@ -41,6 +45,10 @@ export function Onboarding({ onCreated }: { onCreated: (code: string) => void })
     } finally {
       setBusy(false)
     }
+  }
+
+  if (signingIn) {
+    return <SignInScreen onSignedIn={reload} onBack={() => setSigningIn(false)} />
   }
 
   return (
@@ -103,9 +111,13 @@ export function Onboarding({ onCreated }: { onCreated: (code: string) => void })
         </Button>
       </form>
 
-      <p className="mt-6 text-xs text-slate-500">
-        There are no passwords: this device keeps an anonymous sign-in. If you clear this browser's
-        site data or switch device, the sign-in can't be recovered.
+      <Button variant="ghost" full className="mt-4" onClick={() => setSigningIn(true)}>
+        Already have an account? Sign in
+      </Button>
+
+      <p className="mt-4 text-xs text-slate-500">
+        There are no passwords: this device keeps an anonymous sign-in. After creating or joining a
+        space, add an email and password under Account so you can sign in again on a new device.
       </p>
     </FullScreen>
   )

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { BalanceCard } from '@/components/balance/BalanceCard'
 import { ExpenseRow } from '@/components/expenses/ExpenseRow'
 import { Button, EmptyState, ErrorState, Spinner } from '@/components/ui'
+import { useAuth } from '@/features/auth/AuthProvider'
 import { useSpace } from '@/features/shared-space/SpaceProvider'
 import { InviteCode } from '@/features/shared-space/InviteReveal'
 import { useCategories, useExpenseList, usePaidTotals } from '@/features/queries'
@@ -27,6 +28,7 @@ const navLink =
 
 export function Dashboard() {
   const { space, memberName } = useSpace()
+  const { isAnonymous } = useAuth()
   const totals = usePaidTotals(space.me.id)
   const recent = useExpenseList({}, 10)
   const cats = useCategories()
@@ -50,6 +52,13 @@ export function Dashboard() {
             </svg>
             Stats
           </Link>
+          <Link to="/account" className={navLink}>
+            <svg {...iconProps}>
+              <circle cx="12" cy="8" r="4" />
+              <path d="M4 21c0-4 4-6 8-6s8 2 8 6" />
+            </svg>
+            Account
+          </Link>
         </nav>
       </header>
 
@@ -65,6 +74,7 @@ export function Dashboard() {
       )}
 
       {!space.partner && <InviteBanner />}
+      {isAnonymous && <SecureNudge />}
 
       <section className="mt-8" aria-labelledby="recent-h">
         <div className="mb-3 flex items-baseline justify-between">
@@ -101,6 +111,23 @@ export function Dashboard() {
         )}
       </section>
     </>
+  )
+}
+
+function SecureNudge() {
+  return (
+    <section className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+      <h2 className="font-semibold text-amber-950">Secure your account</h2>
+      <p className="mt-1 text-sm text-amber-900">
+        Add an email and password so you can get back in if you change phone or clear browser data.
+      </p>
+      <Link
+        to="/account"
+        className="mt-2 inline-flex min-h-11 items-center text-sm font-semibold text-amber-950 underline"
+      >
+        Add email
+      </Link>
+    </section>
   )
 }
 

@@ -12,6 +12,17 @@ const KNOWN: Record<string, string> = {
   expenses_description_check: 'Description is required (max 120 characters).',
 }
 
+const AUTH_CODES: Record<string, string> = {
+  email_exists: 'That email is already linked to an account. Use "Sign in" instead.',
+  over_request_rate_limit: 'Too many attempts. Wait a few minutes and try again.',
+  validation_failed: 'Check the email and password and try again.',
+  invalid_credentials: 'Wrong email or password.',
+  weak_password: 'That password is too weak. Use at least 8 characters.',
+  same_password: 'That is already your password.',
+  email_not_confirmed: 'This email is not confirmed yet. In Supabase, turn off "Confirm email".',
+  email_address_invalid: 'Enter a valid email address.',
+}
+
 export class AppError extends Error {
   readonly kind: 'network' | 'permission' | 'session' | 'known' | 'unknown'
   constructor(message: string, kind: AppError['kind']) {
@@ -39,6 +50,8 @@ export function toAppError(e: unknown): AppError {
   }
   const err = e as { message?: string; code?: string; status?: number }
   const msg = err?.message ?? ''
+  const authText = err?.code ? AUTH_CODES[err.code] : undefined
+  if (authText) return new AppError(authText, 'known')
   for (const [key, text] of Object.entries(KNOWN)) {
     if (msg.includes(key)) {
       return new AppError(text, key === 'not_authenticated' ? 'session' : 'known')
