@@ -28,11 +28,19 @@ input[type='date'] {
   max-width: 100%;
   box-sizing: border-box;
   text-align: left;
+  /* Without the native look, iOS draws the value at the top of the box. A fixed height with
+     equal padding (3rem box = 2px border + 2 x 0.7rem padding + 1.5rem text) centres it. */
+  height: 3rem;
+  padding-block: 0.7rem;
+  line-height: 1.5rem;
 }
 
 input[type='date']::-webkit-date-and-time-value {
   text-align: left;
-  min-height: 1.5em;
+  min-height: 1.5rem;
+  line-height: 1.5rem;
+  margin: 0;
+  padding: 0;
 }
 
 body {
