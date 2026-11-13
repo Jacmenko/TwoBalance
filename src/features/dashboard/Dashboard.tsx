@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { BalanceCard, SpentCard } from '@/components/balance/BalanceCard'
 import { ExpenseRow } from '@/components/expenses/ExpenseRow'
@@ -80,8 +79,8 @@ export function Dashboard() {
         <BalanceCard cents={balanceCents(totals.data)} />
       )}
 
-      {!space.partner && (
-        <InviteBanner key={space.coupleId} coupleId={space.coupleId} solo={space.solo} />
+      {!space.solo && !space.partner && (
+        <InviteBanner key={space.coupleId} coupleId={space.coupleId} />
       )}
       {isAnonymous && <SecureNudge />}
 
@@ -140,8 +139,7 @@ function SecureNudge() {
   )
 }
 
-function InviteBanner({ coupleId, solo }: { coupleId: string; solo: boolean }) {
-  const qc = useQueryClient()
+function InviteBanner({ coupleId }: { coupleId: string }) {
   const [code, setCode] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -151,8 +149,6 @@ function InviteBanner({ coupleId, solo }: { coupleId: string; solo: boolean }) {
     setError(null)
     try {
       setCode(await regenerateInvite(coupleId))
-      // A solo space becomes a normal shared one once it has an invite.
-      await qc.invalidateQueries({ queryKey: ['space'] })
     } catch (e) {
       setError(toAppError(e).message)
     } finally {
@@ -162,13 +158,9 @@ function InviteBanner({ coupleId, solo }: { coupleId: string; solo: boolean }) {
 
   return (
     <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-4">
-      <h2 className="font-semibold">
-        {solo && !code ? 'Just you here' : 'Waiting for your partner'}
-      </h2>
+      <h2 className="font-semibold">Waiting for your partner</h2>
       <p className="mt-1 text-sm text-slate-600">
-        {solo && !code
-          ? 'This space is just for you. Want to split expenses with someone? Invite a partner — the space then becomes a shared 50/50 space.'
-          : "Your partner hasn't joined yet. Generate an invitation code and send it to them."}
+        Your partner hasn't joined yet. Generate an invitation code and send it to them.
       </p>
       {code ? (
         <div className="mt-3">
@@ -181,7 +173,7 @@ function InviteBanner({ coupleId, solo }: { coupleId: string; solo: boolean }) {
           onClick={() => void generate()}
           disabled={busy}
         >
-          {busy ? 'Generating…' : solo ? 'Invite a partner' : 'Get invitation code'}
+          {busy ? 'Generating…' : 'Get invitation code'}
         </Button>
       )}
       {error && (

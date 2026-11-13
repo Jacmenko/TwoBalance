@@ -1,8 +1,14 @@
 import { useState, type FormEvent } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { Button, ConfirmDialog, Field, InlineError, inputClass } from '@/components/ui'
-import { deleteSpace, makeSpaceSolo, renameSpace } from '@/services/couple.service'
+import {
+  deleteSpace,
+  makeSpaceSolo,
+  regenerateInvite,
+  renameSpace,
+} from '@/services/couple.service'
 import { toAppError } from '@/services/errors'
+import { InviteCode } from './InviteReveal'
 import { useSpace } from './SpaceProvider'
 
 /** Lives on the Account page: settings for the space currently selected on the dashboard. */
@@ -13,6 +19,27 @@ export function SpaceSettings() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const partner = space.partner?.displayName
+  // Invitation code shown after "Invite a partner" (kept with its space id so it never leaks
+  // into another space when you switch).
+  const [invite, setInvite] = useState<{ coupleId: string; code: string } | null>(null)
+  const [inviting, setInviting] = useState(false)
+  const [inviteError, setInviteError] = useState<string | null>(null)
+  const shownCode = invite && invite.coupleId === space.coupleId && !partner ? invite.code : null
+
+  async function invitePartner() {
+    setInviting(true)
+    setInviteError(null)
+    try {
+      // A single-person space becomes a normal shared space once it has an invite.
+      const code = await regenerateInvite(space.coupleId)
+      setInvite({ coupleId: space.coupleId, code })
+      await qc.invalidateQueries({ queryKey: ['space'] })
+    } catch (e) {
+      setInviteError(toAppError(e).message)
+    } finally {
+      setInviting(false)
+    }
+  }
 
   function close() {
     setDialog(null)
@@ -50,6 +77,33 @@ export function SpaceSettings() {
       <RenameSpace key={space.coupleId} coupleId={space.coupleId} currentName={space.name} />
 
       <div className="mt-4 space-y-5 rounded-2xl border border-slate-200 bg-white p-4">
+        {space.solo && (
+          <div>
+            <h3 className="font-semibold">Invite a partner</h3>
+            <p className="mt-1 text-sm text-slate-600">
+              This space is just for you. Invite someone to split expenses with — it then becomes a
+              shared 50/50 space.
+            </p>
+            <Button
+              variant="secondary"
+              className="mt-3"
+              onClick={() => void invitePartner()}
+              disabled={inviting}
+            >
+              {inviting ? 'Generating…' : 'Invite a partner'}
+            </Button>
+            <InlineError message={inviteError} />
+          </div>
+        )}
+        {shownCode && (
+          <div>
+            <h3 className="font-semibold">Invitation code</h3>
+            <p className="mt-1 mb-3 text-sm text-slate-600">
+              Send this one-time code to your partner. It expires in 7 days.
+            </p>
+            <InviteCode code={shownCode} />
+          </div>
+        )}
         {!space.solo && (
           <div>
             <h3 className="font-semibold">Change to single-person</h3>
