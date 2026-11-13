@@ -9,7 +9,7 @@ export function NewSpacePage() {
 
   return (
     <>
-      <PageHeader title="Add a space" back="/account" />
+      <PageHeader title="Add a space" back="/" />
       <SpaceForm
         defaultName={space.me.displayName}
         enterSpace={async (coupleId, inviteCode) => {

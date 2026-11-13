@@ -6,6 +6,7 @@ import { ExpenseRow } from '@/components/expenses/ExpenseRow'
 import { Button, EmptyState, ErrorState, Spinner } from '@/components/ui'
 import { useAuth } from '@/features/auth/AuthProvider'
 import { useSpace } from '@/features/shared-space/SpaceProvider'
+import { SpaceSwitcher } from '@/features/shared-space/SpaceSwitcher'
 import { InviteCode } from '@/features/shared-space/InviteReveal'
 import { useCategories, useExpenseList, usePaidTotals } from '@/features/queries'
 import { balanceCents } from '@/lib/money/calculations'
@@ -39,12 +40,8 @@ export function Dashboard() {
     <>
       <header className="pb-4">
         <div className="flex items-center justify-between gap-2">
-          <div className="min-w-0">
-            <p className="text-xs font-semibold tracking-wide text-emerald-800 uppercase">
-              TwoBalance
-            </p>
-            <h1 className="truncate text-xl font-bold">{space.name}</h1>
-          </div>
+          <h1 className="sr-only">{space.name}</h1>
+          <SpaceSwitcher />
           <nav aria-label="Main" className="-mr-2 flex">
             <Link to="/history" className={navLink}>
               <svg {...iconProps}>

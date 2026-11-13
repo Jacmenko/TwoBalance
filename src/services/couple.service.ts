@@ -70,3 +70,14 @@ export async function regenerateInvite(coupleId: string): Promise<string> {
 export async function renameSpace(coupleId: string, name: string): Promise<void> {
   await unwrap(supabase.rpc('rename_couple', { p_couple_id: coupleId, p_name: name }))
 }
+
+/** Delete a space (and all its expenses) for everyone in it. */
+export async function deleteSpace(coupleId: string): Promise<void> {
+  await unwrap(supabase.rpc('delete_couple', { p_couple_id: coupleId }))
+}
+
+/** Change a space to single-person. For a shared space this gives each person their own
+ *  copy (with all expenses) and removes the shared one. Returns the caller's resulting space. */
+export async function makeSpaceSolo(coupleId: string): Promise<string> {
+  return unwrap<string>(supabase.rpc('split_couple', { p_couple_id: coupleId }))
+}

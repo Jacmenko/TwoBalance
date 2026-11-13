@@ -4,6 +4,7 @@ const KNOWN: Record<string, string> = {
   invalid_invite: 'That invitation code is invalid, already used, or has expired.',
   couple_full: 'This shared space already has two members.',
   already_member: 'You are already a member of this space.',
+  already_solo: 'This space is already single-person.',
   invalid_space_name: 'Enter a space name between 1 and 40 characters.',
   invalid_display_name: 'Enter a name between 1 and 40 characters.',
   not_authenticated: 'Your session is missing or expired.',

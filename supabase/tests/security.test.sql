@@ -323,6 +323,112 @@ begin
 end $$;
 select pg_temp.reset_role();
 
+-- 8d. Delete a space; change a space to single-person (two solo copies) ------------
+-- Two fixture expenses with old created_at values (copy mode keeps created_at).
+select pg_temp.reset_role();
+select set_config('app.copy_expenses', 'on', false);
+insert into public.expenses
+  (couple_id, payer_member_id, category_id, amount_cents, description, expense_date, created_at)
+values
+  ((select v::uuid from ctx where k='couple1'), (select v::uuid from ctx where k='member1'),
+   '00000000-0000-4000-8000-000000000001', 1000, 'A', date '2026-01-01', timestamptz '2020-01-01 10:00+00'),
+  ((select v::uuid from ctx where k='couple1'), (select v::uuid from ctx where k='member2'),
+   '00000000-0000-4000-8000-000000000002', 2500, 'B', date '2026-01-02', timestamptz '2020-01-02 10:00+00');
+select set_config('app.copy_expenses', 'off', false);
+
+-- an outsider can neither split nor delete someone else's space
+select pg_temp.as_user('aaaaaaaa-0000-0000-0000-000000000003');
+do $$
+begin
+  perform pg_temp.expect_fail(format($f$select public.split_couple(%L)$f$,
+    (select v from ctx where k='couple1')), 'not_a_member');
+  perform pg_temp.expect_fail(format($f$select public.delete_couple(%L)$f$,
+    (select v from ctx where k='couple1')), 'not_a_member');
+end $$;
+select pg_temp.reset_role();
+
+-- user 1 changes the shared space to single-person
+select pg_temp.as_user('aaaaaaaa-0000-0000-0000-000000000001');
+do $$
+declare v_new uuid;
+begin
+  v_new := public.split_couple((select v::uuid from ctx where k='couple1'));
+  insert into ctx values ('solo1', v_new::text);
+  if (select count(*) from public.couples where id = (select v::uuid from ctx where k='couple1')) <> 0 then
+    raise exception 'FAIL: original space still visible';
+  end if;
+  if not (select solo from public.couples where id = v_new) then
+    raise exception 'FAIL: copy is not solo';
+  end if;
+  if (select name from public.couples where id = v_new) <> 'Our home' then
+    raise exception 'FAIL: copy lost the space name';
+  end if;
+  if (select count(*) from public.members where couple_id = v_new) <> 1 then
+    raise exception 'FAIL: copy should have exactly one member';
+  end if;
+  if (select count(*) from public.expenses where couple_id = v_new) <> 2 then
+    raise exception 'FAIL: copy should hold both expenses';
+  end if;
+  if (select sum(total_paid_cents) from public.paid_totals(v_new)) <> 3500 then
+    raise exception 'FAIL: copy total';
+  end if;
+end $$;
+select pg_temp.reset_role();
+
+-- the partner got their own copy too; the original and its data are gone
+do $$
+begin
+  if exists (select 1 from public.couples where id = (select v::uuid from ctx where k='couple1')) then
+    raise exception 'FAIL: original space not removed';
+  end if;
+  if exists (select 1 from public.expenses where couple_id = (select v::uuid from ctx where k='couple1')) then
+    raise exception 'FAIL: original expenses not removed';
+  end if;
+  if (select count(*) from public.expenses e join public.couples c on c.id = e.couple_id
+        where c.solo and c.created_by = 'aaaaaaaa-0000-0000-0000-000000000002') <> 2 then
+    raise exception 'FAIL: partner copy missing expenses';
+  end if;
+  if (select min(created_at) from public.expenses where couple_id = (select v::uuid from ctx where k='solo1'))
+       <> timestamptz '2020-01-01 10:00+00' then
+    raise exception 'FAIL: created_at not preserved in copy';
+  end if;
+end $$;
+
+-- the partner sees their copy (and only theirs) and can keep using it
+select pg_temp.as_user('aaaaaaaa-0000-0000-0000-000000000002');
+do $$
+begin
+  if (select count(*) from public.couples where solo) <> 1 then
+    raise exception 'FAIL: partner should see exactly one solo space';
+  end if;
+  if (select count(*) from public.expenses) <> 2 then
+    raise exception 'FAIL: partner should see 2 expenses';
+  end if;
+end $$;
+select pg_temp.reset_role();
+
+-- a space still waiting for a partner just becomes solo (same id); delete removes it
+select pg_temp.as_user('aaaaaaaa-0000-0000-0000-000000000004');
+do $$
+declare v_id uuid;
+begin
+  v_id := public.split_couple((select v::uuid from ctx where k='couple4'));
+  if v_id <> (select v::uuid from ctx where k='couple4') then
+    raise exception 'FAIL: waiting space should keep its id';
+  end if;
+  if not (select solo from public.couples where id = v_id) then
+    raise exception 'FAIL: waiting space did not become solo';
+  end if;
+  perform pg_temp.expect_fail(format($f$select public.split_couple(%L)$f$, v_id), 'already_solo');
+
+  perform public.delete_couple(v_id);
+  if exists (select 1 from public.couples where id = v_id) then
+    raise exception 'FAIL: space not deleted';
+  end if;
+  perform pg_temp.expect_fail(format($f$select public.delete_couple(%L)$f$, v_id), 'not_a_member');
+end $$;
+select pg_temp.reset_role();
+
 -- 9. Anonymous-role cannot reach privileged helpers -----------------------------
 select pg_temp.as_user('aaaaaaaa-0000-0000-0000-000000000002');
 select pg_temp.expect_fail($$select public.generate_invite_code()$$, 'permission denied');

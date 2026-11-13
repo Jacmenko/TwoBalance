@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Button, ConfirmDialog, PageHeader } from '@/components/ui'
 import { signOut } from '@/services/auth.service'
 import { toAppError } from '@/services/errors'
-import { SpacesSection } from '@/features/shared-space/SpacesSection'
+import { SpaceSettings } from '@/features/shared-space/SpaceSettings'
 import { useAuth } from './AuthProvider'
 import { CredentialsForm } from './CredentialsForm'
 
@@ -27,7 +27,7 @@ export function AccountPage() {
   return (
     <>
       <PageHeader title="Account" />
-      <SpacesSection />
+      <SpaceSettings />
       <h2 className="mt-8 mb-3 text-lg font-bold">Sign-in</h2>
       {isAnonymous ? (
         <section className="rounded-2xl border border-slate-200 bg-white p-4">

@@ -78,8 +78,10 @@ terms, backups and inactivity rules (free Supabase projects can pause when idle)
 - **Identity:** Supabase anonymous sign-in; the session persists in browser storage. No passwords.
 - **Spaces:** one account can belong to several named spaces (each still has exactly two people),
   e.g. "Home" and "Rome trip". A space can also be **just for one person** (no split, no invite);
-  inviting a partner later turns it into a shared space. Switch, add, join and rename spaces under
-  Account → Spaces. The current space is remembered per device; balances and history are per space.
+  inviting a partner later turns it into a shared space. Tap the space name on the dashboard to
+  switch or add spaces (Instagram-style); rename, change to single-person (a shared space becomes one
+  single-person copy per person, each with all expenses) or delete a space under Account → Space
+  settings. The current space is remembered per device; balances and history are per space.
 - **Create / join:** `create_couple` and `join_couple` are `SECURITY DEFINER` RPCs. Invite codes are
   12 random characters (≈60 bits, from `gen_random_bytes`), stored only as a SHA-256 hash, single
   use, expire after 7 days. Joining locks the couple row, so a third member can never be added.
