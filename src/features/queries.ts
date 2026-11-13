@@ -1,5 +1,8 @@
+import { useCallback } from 'react'
 import { useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
-import type { ExpenseFilters } from '@/types/domain'
+import { categoryLabel } from '@/i18n/core'
+import { useI18n } from '@/i18n/I18nProvider'
+import type { Category, ExpenseFilters } from '@/types/domain'
 import {
   fetchPaidTotals,
   getExpense,
@@ -22,8 +25,20 @@ export function useInvalidateLedger() {
   return () => invalidateLedger(qc)
 }
 
-export const useCategories = () =>
-  useQuery({ queryKey: ['categories'], queryFn: listCategories, staleTime: Infinity })
+/** Categories with names shown in the active language (the cache keeps the DB originals). */
+export function useCategories() {
+  const { language } = useI18n()
+  const select = useCallback(
+    (cats: Category[]) => cats.map((c) => ({ ...c, name: categoryLabel(language, c) })),
+    [language],
+  )
+  return useQuery({
+    queryKey: ['categories'],
+    queryFn: listCategories,
+    staleTime: Infinity,
+    select,
+  })
+}
 
 export const useExpenseList = (coupleId: string, filters: ExpenseFilters, limit: number) =>
   useQuery({

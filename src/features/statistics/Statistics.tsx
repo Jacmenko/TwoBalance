@@ -13,16 +13,19 @@ import { presetRange, type RangePreset } from '@/lib/dates'
 import { formatEur } from '@/lib/money/format'
 import { summarize } from '@/lib/statistics'
 import { toAppError } from '@/services/errors'
+import { useI18n } from '@/i18n/I18nProvider'
+import type { MessageKey } from '@/i18n/core'
 
-const PRESETS: { id: RangePreset; label: string }[] = [
-  { id: 'this-month', label: 'This month' },
-  { id: 'last-month', label: 'Last month' },
-  { id: 'last-30', label: 'Last 30 days' },
-  { id: 'this-year', label: 'This year' },
-  { id: 'custom', label: 'Custom' },
+const PRESETS: { id: RangePreset; label: MessageKey }[] = [
+  { id: 'this-month', label: 'stats.thisMonth' },
+  { id: 'last-month', label: 'stats.lastMonth' },
+  { id: 'last-30', label: 'stats.last30' },
+  { id: 'this-year', label: 'stats.thisYear' },
+  { id: 'custom', label: 'stats.custom' },
 ]
 
 export function Statistics() {
+  const { t } = useI18n()
   const { space, memberName } = useSpace()
   const cats = useCategories()
   const [preset, setPreset] = useState<RangePreset>('this-month')
@@ -32,13 +35,14 @@ export function Statistics() {
   const rangeInvalid = !range.from || !range.to || range.from > range.to
   const q = useAllExpenses(space.coupleId, rangeInvalid ? { from: '9999-12-31' } : range)
   const summary = useMemo(() => summarize(q.data ?? []), [q.data])
-  const catName = (id: string) => cats.data?.find((c) => c.id === id)?.name ?? 'Unknown'
+  const catName = (id: string) =>
+    cats.data?.find((c) => c.id === id)?.name ?? t('stats.unknownCategory')
 
   return (
     <>
-      <PageHeader title="Statistics" />
+      <PageHeader title={t('stats.title')} />
 
-      <div role="radiogroup" aria-label="Period" className="flex flex-wrap gap-2">
+      <div role="radiogroup" aria-label={t('stats.period')} className="flex flex-wrap gap-2">
         {PRESETS.map((p) => (
           <button
             key={p.id}
@@ -52,7 +56,7 @@ export function Statistics() {
                 : 'bg-white text-slate-700 ring-slate-300'
             }`}
           >
-            {p.label}
+            {t(p.label)}
           </button>
         ))}
       </div>
@@ -60,7 +64,7 @@ export function Statistics() {
       {preset === 'custom' && (
         <div className="mt-3 grid grid-cols-2 gap-3">
           <label className="text-sm font-medium text-slate-700">
-            From
+            {t('history.from')}
             <input
               type="date"
               className={`${inputClass} mt-1`}
@@ -69,7 +73,7 @@ export function Statistics() {
             />
           </label>
           <label className="text-sm font-medium text-slate-700">
-            To
+            {t('history.to')}
             <input
               type="date"
               className={`${inputClass} mt-1`}
@@ -79,9 +83,7 @@ export function Statistics() {
           </label>
         </div>
       )}
-      <InlineError
-        message={rangeInvalid ? 'Choose a valid range: "From" must be on or before "To".' : null}
-      />
+      <InlineError message={rangeInvalid ? t('stats.rangeInvalid') : null} />
       <p className="mt-2 text-sm text-slate-500">
         {range.from} → {range.to}
       </p>
@@ -92,15 +94,12 @@ export function Statistics() {
         ) : q.isError ? (
           <ErrorState message={toAppError(q.error).message} onRetry={() => void q.refetch()} />
         ) : summary.totalCents === 0 ? (
-          <EmptyState
-            title="No spending in this period"
-            hint="Pick another period or add an expense."
-          />
+          <EmptyState title={t('stats.empty')} hint={t('stats.emptyHint')} />
         ) : (
           <div className="space-y-6">
             <section className="rounded-3xl bg-white p-5 ring-1 ring-slate-200">
               <h2 className="text-sm font-medium text-slate-600">
-                {space.solo ? 'Total spending' : 'Total shared spending'}
+                {space.solo ? t('stats.totalSolo') : t('stats.totalShared')}
               </h2>
               <p className="mt-1 text-4xl font-bold tabular-nums">
                 {formatEur(summary.totalCents)}
@@ -109,7 +108,7 @@ export function Statistics() {
 
             <section aria-labelledby="by-cat">
               <h2 id="by-cat" className="mb-3 text-lg font-bold">
-                By category
+                {t('stats.byCategory')}
               </h2>
               <ul className="space-y-3">
                 {summary.byCategory.map((c) => (
@@ -135,7 +134,7 @@ export function Statistics() {
             {!space.solo && (
               <section aria-labelledby="by-payer">
                 <h2 id="by-payer" className="mb-3 text-lg font-bold">
-                  Paid by
+                  {t('stats.paidBy')}
                 </h2>
                 <ul className="space-y-2">
                   {summary.byPayer.map((p) => (

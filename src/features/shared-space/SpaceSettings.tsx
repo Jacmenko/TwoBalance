@@ -8,11 +8,13 @@ import {
   renameSpace,
 } from '@/services/couple.service'
 import { toAppError } from '@/services/errors'
+import { useI18n } from '@/i18n/I18nProvider'
 import { InviteCode } from './InviteReveal'
 import { useSpace } from './SpaceProvider'
 
 /** Lives on the Account page: settings for the space currently selected on the dashboard. */
 export function SpaceSettings() {
+  const { t } = useI18n()
   const { space, enterSpace } = useSpace()
   const qc = useQueryClient()
   const [dialog, setDialog] = useState<'solo' | 'delete' | null>(null)
@@ -68,78 +70,69 @@ export function SpaceSettings() {
   return (
     <section aria-labelledby="space-settings-h">
       <h2 id="space-settings-h" className="text-lg font-bold">
-        Space settings
+        {t('settings.title')}
       </h2>
-      <p className="mt-1 mb-3 text-sm text-slate-600">
-        For “{space.name}”. Switch or add spaces from the title on the dashboard.
-      </p>
+      <p className="mt-1 mb-3 text-sm text-slate-600">{t('settings.for', { name: space.name })}</p>
 
       <RenameSpace key={space.coupleId} coupleId={space.coupleId} currentName={space.name} />
 
       <div className="mt-4 space-y-5 rounded-2xl border border-slate-200 bg-white p-4">
         {space.solo && (
           <div>
-            <h3 className="font-semibold">Invite a partner</h3>
-            <p className="mt-1 text-sm text-slate-600">
-              This space is just for you. Invite someone to split expenses with — it then becomes a
-              shared 50/50 space.
-            </p>
+            <h3 className="font-semibold">{t('settings.invite.title')}</h3>
+            <p className="mt-1 text-sm text-slate-600">{t('settings.invite.body')}</p>
             <Button
               variant="secondary"
               className="mt-3"
               onClick={() => void invitePartner()}
               disabled={inviting}
             >
-              {inviting ? 'Generating…' : 'Invite a partner'}
+              {inviting ? t('common.generating') : t('settings.invite.title')}
             </Button>
             <InlineError message={inviteError} />
           </div>
         )}
         {shownCode && (
           <div>
-            <h3 className="font-semibold">Invitation code</h3>
-            <p className="mt-1 mb-3 text-sm text-slate-600">
-              Send this one-time code to your partner. It expires in 7 days.
-            </p>
+            <h3 className="font-semibold">{t('settings.inviteCode.title')}</h3>
+            <p className="mt-1 mb-3 text-sm text-slate-600">{t('settings.inviteCode.body')}</p>
             <InviteCode code={shownCode} />
           </div>
         )}
         {!space.solo && (
           <div>
-            <h3 className="font-semibold">Change to single-person</h3>
+            <h3 className="font-semibold">{t('settings.solo.title')}</h3>
             <p className="mt-1 text-sm text-slate-600">
-              {partner
-                ? `You and ${partner} each get your own single-person copy with all expenses, and the shared space is removed.`
-                : 'Turns this space into a single-person space. You can invite a partner again later.'}
+              {partner ? t('settings.solo.withPartner', { partner }) : t('settings.solo.noPartner')}
             </p>
             <Button variant="secondary" className="mt-3" onClick={() => setDialog('solo')}>
-              Change to single-person…
+              {t('settings.solo.button')}
             </Button>
           </div>
         )}
         <div>
-          <h3 className="font-semibold text-rose-900">Delete space</h3>
+          <h3 className="font-semibold text-rose-900">{t('settings.delete.title')}</h3>
           <p className="mt-1 text-sm text-slate-600">
             {partner
-              ? `Permanently deletes this space and all its expenses for you and ${partner}.`
-              : 'Permanently deletes this space and all its expenses.'}
+              ? t('settings.delete.withPartner', { partner })
+              : t('settings.delete.noPartner')}
           </p>
           <Button variant="danger" className="mt-3" onClick={() => setDialog('delete')}>
-            Delete space…
+            {t('settings.delete.button')}
           </Button>
         </div>
       </div>
 
       {dialog === 'solo' && (
         <ConfirmDialog
-          title="Change to single-person?"
+          title={t('settings.solo.dialogTitle')}
           message={
             partner
-              ? `This creates a single-person copy of “${space.name}” for you and another for ${partner}, each with all expenses. The shared space is then removed for both of you. This can't be undone.`
-              : `“${space.name}” becomes a single-person space. You can invite a partner again later.`
+              ? t('settings.solo.dialogWithPartner', { name: space.name, partner })
+              : t('settings.solo.dialogNoPartner', { name: space.name })
           }
-          confirmLabel="Change to single-person"
-          busyLabel="Working…"
+          confirmLabel={t('settings.solo.confirm')}
+          busyLabel={t('common.working')}
           tone="primary"
           busy={busy}
           error={error}
@@ -149,9 +142,13 @@ export function SpaceSettings() {
       )}
       {dialog === 'delete' && (
         <ConfirmDialog
-          title="Delete this space?"
-          message={`This permanently deletes “${space.name}” and all its expenses${partner ? ` for you and ${partner}` : ''}. This can't be undone. Export a CSV from History first if you want a backup.`}
-          confirmLabel="Delete space"
+          title={t('settings.delete.dialogTitle')}
+          message={
+            partner
+              ? t('settings.delete.dialogMessageWithPartner', { name: space.name, partner })
+              : t('settings.delete.dialogMessage', { name: space.name })
+          }
+          confirmLabel={t('settings.delete.confirm')}
           busy={busy}
           error={error}
           onConfirm={() => void confirm()}
@@ -163,6 +160,7 @@ export function SpaceSettings() {
 }
 
 function RenameSpace({ coupleId, currentName }: { coupleId: string; currentName: string }) {
+  const { t } = useI18n()
   const qc = useQueryClient()
   const [name, setName] = useState(currentName)
   const [busy, setBusy] = useState(false)
@@ -175,7 +173,7 @@ function RenameSpace({ coupleId, currentName }: { coupleId: string; currentName:
     setSaved(false)
     const n = name.trim()
     if (n.length < 1 || n.length > 40) {
-      setError('Enter a name (max 40 characters).')
+      setError(t('settings.errName'))
       return
     }
     setBusy(true)
@@ -192,9 +190,9 @@ function RenameSpace({ coupleId, currentName }: { coupleId: string; currentName:
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-4">
-      <h3 className="mb-3 font-semibold">Rename</h3>
+      <h3 className="mb-3 font-semibold">{t('settings.rename')}</h3>
       <form onSubmit={(e) => void submit(e)} className="space-y-3" noValidate>
-        <Field label="Space name" htmlFor="rename-space">
+        <Field label={t('spaceForm.spaceName')} htmlFor="rename-space">
           <input
             id="rename-space"
             className={inputClass}
@@ -210,11 +208,11 @@ function RenameSpace({ coupleId, currentName }: { coupleId: string; currentName:
         <InlineError message={error} />
         {saved && (
           <p role="status" className="text-sm font-medium text-emerald-800">
-            Saved.
+            {t('common.saved')}
           </p>
         )}
         <Button type="submit" variant="secondary" disabled={busy || name.trim() === currentName}>
-          {busy ? 'Saving…' : 'Save name'}
+          {busy ? t('common.saving') : t('settings.saveName')}
         </Button>
       </form>
     </div>

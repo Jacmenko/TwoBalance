@@ -6,9 +6,11 @@ import { useSpace } from '@/features/shared-space/SpaceProvider'
 import { useCategories, useExpense, useInvalidateLedger } from '@/features/queries'
 import { createExpense, deleteExpense, updateExpense } from '@/services/expense.service'
 import { toAppError } from '@/services/errors'
+import { useI18n } from '@/i18n/I18nProvider'
 import type { ExpenseInput } from '@/types/domain'
 
 export function NewExpensePage() {
+  const { t } = useI18n()
   const { space } = useSpace()
   const nav = useNavigate()
   const invalidate = useInvalidateLedger()
@@ -26,7 +28,7 @@ export function NewExpensePage() {
   }
 
   return (
-    <Shell title="Add expense">
+    <Shell title={t('expense.add.title')}>
       {cats.isPending ? (
         <Spinner />
       ) : cats.isError ? (
@@ -34,9 +36,9 @@ export function NewExpensePage() {
       ) : (
         <ExpenseForm
           categories={cats.data}
-          payerName={`${space.me.displayName} (you)`}
+          payerName={t('common.youSuffix', { name: space.me.displayName })}
           solo={space.solo}
-          submitLabel="Save expense"
+          submitLabel={t('expense.add.save')}
           onSubmit={save}
         />
       )}
@@ -45,6 +47,7 @@ export function NewExpensePage() {
 }
 
 export function EditExpensePage() {
+  const { t } = useI18n()
   const { id = '' } = useParams()
   const { space, memberName } = useSpace()
   const nav = useNavigate()
@@ -91,7 +94,7 @@ export function EditExpensePage() {
       />
     )
   } else if (!exp.data || exp.data.coupleId !== space.coupleId) {
-    body = <EmptyState title="Expense not found" hint="It may have been deleted." />
+    body = <EmptyState title={t('expense.notFound')} hint={t('expense.notFoundHint')} />
   } else {
     const payer = memberName(exp.data.payerMemberId)
     body = (
@@ -99,9 +102,13 @@ export function EditExpensePage() {
         key={exp.data.updatedAt}
         categories={cats.data}
         initial={exp.data}
-        payerName={payer === 'You' ? `${space.me.displayName} (you)` : payer}
+        payerName={
+          exp.data.payerMemberId === space.me.id
+            ? t('common.youSuffix', { name: space.me.displayName })
+            : payer
+        }
         solo={space.solo}
-        submitLabel="Save changes"
+        submitLabel={t('expense.edit.save')}
         onSubmit={save}
         onDelete={() => setConfirming(true)}
       />
@@ -109,13 +116,13 @@ export function EditExpensePage() {
   }
 
   return (
-    <Shell title="Edit expense">
+    <Shell title={t('expense.edit.title')}>
       {body}
       {confirming && (
         <ConfirmDialog
-          title="Delete this expense?"
-          message="It will be removed from the history, both balances and the statistics."
-          confirmLabel="Delete"
+          title={t('expense.deleteDialog.title')}
+          message={t('expense.deleteDialog.message')}
+          confirmLabel={t('expense.deleteDialog.confirm')}
           busy={deleting}
           error={deleteError}
           onConfirm={() => void remove()}

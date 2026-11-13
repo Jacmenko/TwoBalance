@@ -17,6 +17,7 @@ import {
 } from '@/services/auth.service'
 import { toAppError } from '@/services/errors'
 import { Button, ErrorState, FullScreen, Spinner } from '@/components/ui'
+import { useI18n } from '@/i18n/I18nProvider'
 import { SignInScreen } from './SignInScreen'
 
 type AuthState =
@@ -44,6 +45,7 @@ export function useAuth(): AuthContextValue {
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const { t } = useI18n()
   const [state, setState] = useState<AuthState>({ status: 'loading' })
 
   const init = useCallback(async () => {
@@ -108,7 +110,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return (
       <FullScreen>
         <ErrorState
-          title="Can't start the app"
+          title={t('signin.cantStart')}
           message={state.message}
           onRetry={() => void init()}
         />
@@ -120,6 +122,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 }
 
 function LostSession({ reload }: { reload: () => Promise<void> }) {
+  const { t } = useI18n()
   const [signingIn, setSigningIn] = useState(false)
 
   const startFresh = async () => {
@@ -133,30 +136,21 @@ function LostSession({ reload }: { reload: () => Promise<void> }) {
 
   return (
     <FullScreen>
-      <h1 className="text-2xl font-bold">Session unavailable</h1>
-      <p className="mt-3 text-slate-600">
-        This browser used to be signed in to a shared space, but that sign-in is gone. This happens
-        if site data was cleared, the browser or device changed, or the app was reinstalled.
-      </p>
-      <p className="mt-3 text-slate-600">
-        Your expenses are not deleted. If you secured your account with an email and password, sign
-        in to get straight back to your space.
-      </p>
+      <h1 className="text-2xl font-bold">{t('lost.title')}</h1>
+      <p className="mt-3 text-slate-600">{t('lost.body1')}</p>
+      <p className="mt-3 text-slate-600">{t('lost.body2')}</p>
       <div className="mt-6 flex flex-col gap-3">
         <Button full onClick={() => setSigningIn(true)}>
-          Sign in
+          {t('auth.signIn')}
         </Button>
         <Button variant="secondary" full onClick={() => void reload()}>
-          Check again
+          {t('lost.checkAgain')}
         </Button>
         <Button variant="ghost" full onClick={() => void startFresh()}>
-          I never set an email — start over
+          {t('lost.startOver')}
         </Button>
       </div>
-      <p className="mt-3 text-sm text-slate-500">
-        Starting over creates a brand-new identity; an identity without an email can't be recovered,
-        and you'll create or join a space again. Your partner can still export the old data as CSV.
-      </p>
+      <p className="mt-3 text-sm text-slate-500">{t('lost.startOverHint')}</p>
     </FullScreen>
   )
 }

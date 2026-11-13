@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Button, FullScreen } from '@/components/ui'
 import { useAuth } from '@/features/auth/AuthProvider'
 import { SignInScreen } from '@/features/auth/SignInScreen'
+import { useI18n } from '@/i18n/I18nProvider'
 import { SpaceForm } from './SpaceForm'
 
 export function Onboarding({
@@ -10,6 +11,7 @@ export function Onboarding({
   enterSpace: (coupleId: string, inviteCode?: string) => Promise<void>
 }) {
   const { reload } = useAuth()
+  const { t } = useI18n()
   const [signingIn, setSigningIn] = useState(false)
 
   if (signingIn) {
@@ -19,18 +21,15 @@ export function Onboarding({
   return (
     <FullScreen>
       <h1 className="text-3xl font-bold">TwoBalance</h1>
-      <p className="mt-2 mb-8 text-slate-600">A private shared expense tracker for two.</p>
+      <p className="mt-2 mb-8 text-slate-600">{t('app.tagline')}</p>
 
       <SpaceForm enterSpace={enterSpace} />
 
       <Button variant="ghost" full className="mt-4" onClick={() => setSigningIn(true)}>
-        Already have an account? Sign in
+        {t('onboarding.haveAccount')}
       </Button>
 
-      <p className="mt-4 text-xs text-slate-500">
-        There are no passwords: this device keeps an anonymous sign-in. After creating or joining a
-        space, add an email and password under Account so you can sign in again on a new device.
-      </p>
+      <p className="mt-4 text-xs text-slate-500">{t('onboarding.noPasswords')}</p>
     </FullScreen>
   )
 }

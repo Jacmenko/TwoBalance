@@ -11,6 +11,7 @@ import { Statistics } from '@/features/statistics/Statistics'
 import { EditExpensePage, NewExpensePage } from '@/features/expenses/ExpensePages'
 import { FullScreen } from '@/components/ui'
 import { isSupabaseConfigured } from '@/lib/supabase/client'
+import { useI18n } from '@/i18n/I18nProvider'
 
 function useOnline() {
   const [online, setOnline] = useState(() => navigator.onLine)
@@ -28,6 +29,7 @@ function useOnline() {
 }
 
 function Layout() {
+  const { t } = useI18n()
   const { realtime } = useSpace()
   const online = useOnline()
   const { pathname } = useLocation()
@@ -37,7 +39,7 @@ function Layout() {
     <div className="mx-auto min-h-dvh w-full max-w-md px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-32">
       {!online ? (
         <p role="status" className="mb-3 rounded-xl bg-amber-100 px-4 py-2 text-sm text-amber-900">
-          You're offline. Changes can't be saved until you're back online.
+          {t('app.offline')}
         </p>
       ) : (
         realtime === 'interrupted' && (
@@ -45,7 +47,7 @@ function Layout() {
             role="status"
             className="mb-3 rounded-xl bg-amber-100 px-4 py-2 text-sm text-amber-900"
           >
-            Live updates are paused. We're refreshing periodically instead.
+            {t('app.realtimePaused')}
           </p>
         )
       )}
@@ -62,7 +64,7 @@ function Layout() {
               <span aria-hidden className="text-2xl leading-none">
                 +
               </span>{' '}
-              Add expense
+              {t('app.addExpense')}
             </Link>
           </div>
         </div>
@@ -72,12 +74,17 @@ function Layout() {
 }
 
 function NotConfigured() {
+  const { t } = useI18n()
   return (
     <FullScreen>
-      <h1 className="text-2xl font-bold">Supabase isn't configured</h1>
+      <h1 className="text-2xl font-bold">{t('app.notConfigured.title')}</h1>
       <p className="mt-3 text-slate-600">
-        Copy <code>.env.example</code> to <code>.env</code> and set <code>VITE_SUPABASE_URL</code>{' '}
-        and <code>VITE_SUPABASE_ANON_KEY</code>, then restart the dev server. See the README.
+        {t('app.notConfigured.body', {
+          envExample: '.env.example',
+          env: '.env',
+          url: 'VITE_SUPABASE_URL',
+          key: 'VITE_SUPABASE_ANON_KEY',
+        })}
       </p>
     </FullScreen>
   )

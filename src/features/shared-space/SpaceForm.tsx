@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { Button, Field, InlineError, inputClass } from '@/components/ui'
 import { createSpace, joinSpace } from '@/services/couple.service'
 import { toAppError } from '@/services/errors'
+import { useI18n } from '@/i18n/I18nProvider'
 
 /** Create a new named space, or join one with an invitation code. */
 export function SpaceForm({
@@ -11,6 +12,7 @@ export function SpaceForm({
   enterSpace: (coupleId: string, inviteCode?: string) => Promise<void>
   defaultName?: string
 }) {
+  const { t } = useI18n()
   const [mode, setMode] = useState<'create' | 'join'>('create')
   const [name, setName] = useState(defaultName)
   const [spaceName, setSpaceName] = useState('')
@@ -27,14 +29,12 @@ export function SpaceForm({
     setError(null)
     const n = name.trim()
     const sn = spaceName.trim()
-    const nErr = n.length < 1 || n.length > 40 ? 'Enter your name (max 40 characters).' : null
+    const nErr = n.length < 1 || n.length > 40 ? t('spaceForm.errName') : null
     const sErr =
-      mode === 'create' && (sn.length < 1 || sn.length > 40)
-        ? 'Give the space a name (max 40 characters).'
-        : null
+      mode === 'create' && (sn.length < 1 || sn.length > 40) ? t('spaceForm.errSpace') : null
     const cErr =
       mode === 'join' && code.replace(/[^a-z0-9]/gi, '').length !== 12
-        ? 'Enter the 12-character code from your partner.'
+        ? t('spaceForm.errCode')
         : null
     setNameError(nErr)
     setSpaceError(sErr)
@@ -61,7 +61,7 @@ export function SpaceForm({
     <>
       <div
         role="tablist"
-        aria-label="Create or join"
+        aria-label={t('spaceForm.tabs')}
         className="grid grid-cols-2 rounded-xl bg-slate-200 p-1"
       >
         {(['create', 'join'] as const).map((m) => (
@@ -76,14 +76,14 @@ export function SpaceForm({
             }}
             className={`min-h-11 rounded-lg text-sm font-semibold ${mode === m ? 'bg-white shadow-sm' : 'text-slate-600'}`}
           >
-            {m === 'create' ? 'Create shared space' : 'Join with a code'}
+            {m === 'create' ? t('spaceForm.createTab') : t('spaceForm.joinTab')}
           </button>
         ))}
       </div>
 
       <form onSubmit={submit} className="mt-6 space-y-4" noValidate>
         {mode === 'create' && (
-          <Field label="Space name" htmlFor="space-name" error={spaceError}>
+          <Field label={t('spaceForm.spaceName')} htmlFor="space-name" error={spaceError}>
             <input
               id="space-name"
               className={inputClass}
@@ -91,19 +91,27 @@ export function SpaceForm({
               onChange={(e) => setSpaceName(e.target.value)}
               maxLength={40}
               autoComplete="off"
-              placeholder="e.g. Home, Rome trip"
+              placeholder={t('spaceForm.spaceNamePlaceholder')}
             />
           </Field>
         )}
         {mode === 'create' && (
           <fieldset>
             <legend className="mb-1 block text-sm font-medium text-slate-700">
-              Who is it for?
+              {t('spaceForm.whoFor')}
             </legend>
             <div className="grid grid-cols-2 gap-2">
               {[
-                { value: false, label: 'Me and a partner', hint: 'Split 50/50' },
-                { value: true, label: 'Just me', hint: 'Track my own spending' },
+                {
+                  value: false,
+                  label: t('spaceForm.withPartner'),
+                  hint: t('spaceForm.withPartnerHint'),
+                },
+                {
+                  value: true,
+                  label: t('spaceForm.justMe'),
+                  hint: t('spaceForm.justMeHint'),
+                },
               ].map((o) => (
                 <label
                   key={o.label}
@@ -123,7 +131,7 @@ export function SpaceForm({
             </div>
           </fieldset>
         )}
-        <Field label="Your name" htmlFor="name" error={nameError}>
+        <Field label={t('spaceForm.yourName')} htmlFor="name" error={nameError}>
           <input
             id="name"
             className={inputClass}
@@ -131,11 +139,11 @@ export function SpaceForm({
             onChange={(e) => setName(e.target.value)}
             maxLength={40}
             autoComplete="given-name"
-            placeholder="e.g. Alex"
+            placeholder={t('spaceForm.yourNamePlaceholder')}
           />
         </Field>
         {mode === 'join' && (
-          <Field label="Invitation code" htmlFor="code" error={codeError}>
+          <Field label={t('spaceForm.code')} htmlFor="code" error={codeError}>
             <input
               id="code"
               className={`${inputClass} font-mono uppercase tracking-widest`}
@@ -152,12 +160,12 @@ export function SpaceForm({
         <InlineError message={error} />
         <Button type="submit" full disabled={busy}>
           {busy
-            ? 'Please wait…'
+            ? t('common.pleaseWait')
             : mode === 'create'
               ? solo
-                ? 'Create my space'
-                : 'Create shared space'
-              : 'Join shared space'}
+                ? t('spaceForm.createMine')
+                : t('spaceForm.createShared')
+              : t('spaceForm.join')}
         </Button>
       </form>
     </>

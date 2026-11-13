@@ -1,14 +1,19 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useI18n } from '@/i18n/I18nProvider'
 import type { SpaceInfo } from '@/types/domain'
 import { useSpace } from './SpaceProvider'
-
-const subtitle = (s: SpaceInfo) =>
-  s.solo ? 'Just you' : s.partner ? `With ${s.partner.displayName}` : 'Waiting for your partner'
 
 /** The dashboard title: shows the current space and opens a menu to switch or add spaces. */
 export function SpaceSwitcher() {
   const { space, spaces, switchSpace } = useSpace()
+  const { t } = useI18n()
+  const subtitle = (s: SpaceInfo) =>
+    s.solo
+      ? t('switcher.justYou')
+      : s.partner
+        ? t('switcher.with', { name: s.partner.displayName })
+        : t('switcher.waiting')
   const [open, setOpen] = useState(false)
   const root = useRef<HTMLDivElement>(null)
 
@@ -32,7 +37,7 @@ export function SpaceSwitcher() {
         type="button"
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-label={`${space.name}. Switch space`}
+        aria-label={t('switcher.aria', { name: space.name })}
         onClick={() => setOpen((o) => !o)}
         className="-ml-2 flex max-w-full min-w-0 flex-col items-start rounded-xl px-2 py-1 text-left hover:bg-white/60"
       >
@@ -63,7 +68,7 @@ export function SpaceSwitcher() {
       {open && (
         <div
           role="menu"
-          aria-label="Your spaces"
+          aria-label={t('switcher.menu')}
           className="absolute left-0 z-30 mt-2 w-80 max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl bg-white shadow-xl ring-1 ring-slate-200"
         >
           <ul className="max-h-72 overflow-y-auto py-1">
@@ -114,7 +119,7 @@ export function SpaceSwitcher() {
             <span aria-hidden className="text-xl leading-none">
               +
             </span>
-            Add another space
+            {t('switcher.add')}
           </Link>
         </div>
       )}

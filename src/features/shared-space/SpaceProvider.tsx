@@ -8,6 +8,7 @@ import { ErrorState, FullScreen, Spinner } from '@/components/ui'
 import { useRealtimeSync, type RealtimeStatus } from '@/features/realtime/useRealtimeSync'
 import type { SpaceInfo } from '@/types/domain'
 import { Onboarding } from './Onboarding'
+import { useI18n } from '@/i18n/I18nProvider'
 import { InviteReveal } from './InviteReveal'
 
 interface SpaceContextValue {
@@ -51,6 +52,7 @@ function writeActive(id: string) {
 
 export function SpaceProvider({ children }: { children: ReactNode }) {
   const { userId } = useAuth()
+  const { t } = useI18n()
   const qc = useQueryClient()
   const [pendingInvite, setPendingInvite] = useState<string | null>(null)
   const [activeId, setActiveId] = useState<string | null>(readActive)
@@ -75,7 +77,7 @@ export function SpaceProvider({ children }: { children: ReactNode }) {
     switchSpace(coupleId)
   }
 
-  if (q.isPending) return <Spinner label="Loading your spaces…" />
+  if (q.isPending) return <Spinner label={t('spaces.loading')} />
   if (q.isError && !space) {
     return (
       <FullScreen>
@@ -88,7 +90,11 @@ export function SpaceProvider({ children }: { children: ReactNode }) {
     return <InviteReveal code={pendingInvite} onContinue={() => setPendingInvite(null)} />
 
   const memberName = (id: string) =>
-    id === space.me.id ? 'You' : id === space.partner?.id ? space.partner.displayName : 'Partner'
+    id === space.me.id
+      ? t('common.you')
+      : id === space.partner?.id
+        ? space.partner.displayName
+        : t('common.partner')
 
   return (
     <SpaceContext.Provider value={{ space, spaces, realtime, memberName, switchSpace, enterSpace }}>

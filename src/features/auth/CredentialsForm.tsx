@@ -7,6 +7,7 @@ import {
   signInWithPassword,
 } from '@/services/auth.service'
 import { toAppError } from '@/services/errors'
+import { useI18n } from '@/i18n/I18nProvider'
 
 type Mode = 'link' | 'signin'
 
@@ -19,6 +20,7 @@ export function CredentialsForm({
   mode: Mode
   onDone: () => void | Promise<void>
 }) {
+  const { t } = useI18n()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [busy, setBusy] = useState(false)
@@ -29,15 +31,15 @@ export function CredentialsForm({
     setError(null)
     const addr = normalizeEmail(email)
     if (!/^\S+@\S+\.\S+$/.test(addr)) {
-      setError('Enter a valid email address.')
+      setError(t('auth.validEmail'))
       return
     }
     if (mode === 'link' && password.length < MIN_PASSWORD_LENGTH) {
-      setError(`Use a password of at least ${MIN_PASSWORD_LENGTH} characters.`)
+      setError(t('auth.passwordMin', { n: MIN_PASSWORD_LENGTH }))
       return
     }
     if (mode === 'signin' && password.length === 0) {
-      setError('Enter your password.')
+      setError(t('auth.enterPassword'))
       return
     }
     setBusy(true)
@@ -53,7 +55,7 @@ export function CredentialsForm({
 
   return (
     <form onSubmit={(e) => void submit(e)} className="space-y-4" noValidate>
-      <Field label="Email" htmlFor="auth-email">
+      <Field label={t('auth.email')} htmlFor="auth-email">
         <input
           id="auth-email"
           type="email"
@@ -64,10 +66,10 @@ export function CredentialsForm({
           autoComplete="email"
           autoCapitalize="none"
           spellCheck={false}
-          placeholder="you@example.com"
+          placeholder={t('auth.emailPlaceholder')}
         />
       </Field>
-      <Field label="Password" htmlFor="auth-password">
+      <Field label={t('auth.password')} htmlFor="auth-password">
         <input
           id="auth-password"
           type="password"
@@ -79,7 +81,11 @@ export function CredentialsForm({
       </Field>
       <InlineError message={error} />
       <Button type="submit" full disabled={busy}>
-        {busy ? 'Please wait…' : mode === 'link' ? 'Secure my account' : 'Sign in'}
+        {busy
+          ? t('common.pleaseWait')
+          : mode === 'link'
+            ? t('auth.secureMyAccount')
+            : t('auth.signIn')}
       </Button>
     </form>
   )
