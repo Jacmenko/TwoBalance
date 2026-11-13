@@ -26,7 +26,7 @@ npm run dev
 
 1. Create a project at <https://supabase.com>.
 2. **Authentication → Sign In / Providers → enable "Allow anonymous sign-ins".**
-3. Apply the schema: either paste `supabase/migrations/20260101000000_initial_schema.sql` into the
+3. Apply the schema: either paste each file in `supabase/migrations/` (oldest first) into the
    SQL editor and run it, or use the CLI (`supabase link` then `supabase db push`).
 4. Confirm **Database → Replication/Publications** includes `expenses` and `members` for
    `supabase_realtime` (the migration adds them; Realtime is optional — the app falls back to

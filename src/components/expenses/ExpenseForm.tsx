@@ -36,8 +36,7 @@ export function ExpenseForm({
     const parsed = parseAmountToCents(amount)
     if (!parsed.ok) errs.amount = parsed.error
     const desc = description.trim()
-    if (!desc) errs.description = 'Description is required.'
-    else if (desc.length > 120) errs.description = 'Keep the description under 120 characters.'
+    if (desc.length > 120) errs.description = 'Keep the description under 120 characters.'
     if (!categoryId) errs.category = 'Choose a category.'
     if (!isValidISODate(date)) errs.date = 'Enter a valid date.'
     setErrors(errs)
@@ -72,7 +71,7 @@ export function ExpenseForm({
           autoFocus={!initial}
         />
       </Field>
-      <Field label="Description" htmlFor="description" error={errors.description}>
+      <Field label="Description (optional)" htmlFor="description" error={errors.description}>
         <input
           id="description"
           className={inputClass}

@@ -9,7 +9,7 @@ const KNOWN: Record<string, string> = {
   not_a_member: "You're not a member of a shared space.",
   invalid_category: 'Please choose a valid category.',
   expenses_amount_check: 'Amount must be greater than zero and at most 1,000,000.',
-  expenses_description_check: 'Description is required (max 120 characters).',
+  expenses_description_check: 'Description can be at most 120 characters.',
 }
 
 const AUTH_CODES: Record<string, string> = {

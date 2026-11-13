@@ -21,9 +21,12 @@ export function ExpenseRow({
         className="flex items-center justify-between gap-3 rounded-2xl bg-white px-4 py-3 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50"
       >
         <span className="min-w-0">
-          <span className="block truncate font-semibold">{expense.description}</span>
+          <span className="block truncate font-semibold">
+            {expense.description || categoryName}
+          </span>
           <span className="block truncate text-sm text-slate-600">
-            {payerName} · {categoryName}
+            {payerName}
+            {expense.description && ` · ${categoryName}`}
             {showDate && ` · ${formatDate(expense.expenseDate)}`}
           </span>
         </span>

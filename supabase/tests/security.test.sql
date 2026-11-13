@@ -177,7 +177,7 @@ begin
     (select v from ctx where k='couple1'), (select v from ctx where k='member1')), 'expenses_amount_check');
   perform pg_temp.expect_fail(format($f$insert into public.expenses
     (couple_id, payer_member_id, category_id, amount_cents, description, expense_date)
-    values (%L,%L,'00000000-0000-4000-8000-000000000001',100,'   ',current_date)$f$,
+    values (%L,%L,'00000000-0000-4000-8000-000000000001',100,repeat('x',121),current_date)$f$,
     (select v from ctx where k='couple1'), (select v from ctx where k='member1')), 'expenses_description_check');
   perform pg_temp.expect_fail(format($f$insert into public.expenses
     (couple_id, payer_member_id, category_id, amount_cents, description, expense_date)
