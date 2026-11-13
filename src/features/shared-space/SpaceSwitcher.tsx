@@ -27,7 +27,7 @@ export function SpaceSwitcher() {
   }, [open])
 
   return (
-    <div ref={root} className="relative min-w-0">
+    <div ref={root} className="relative min-w-0 flex-1">
       <button
         type="button"
         aria-haspopup="menu"
@@ -40,7 +40,9 @@ export function SpaceSwitcher() {
           TwoBalance
         </span>
         <span className="flex max-w-full items-center gap-1">
-          <span className="truncate text-xl font-bold">{space.name}</span>
+          <span className="line-clamp-2 text-xl leading-tight font-bold break-words">
+            {space.name}
+          </span>
           <svg
             aria-hidden
             width="18"
@@ -62,7 +64,7 @@ export function SpaceSwitcher() {
         <div
           role="menu"
           aria-label="Your spaces"
-          className="absolute left-0 z-30 mt-2 w-72 max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl bg-white shadow-xl ring-1 ring-slate-200"
+          className="absolute left-0 z-30 mt-2 w-80 max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl bg-white shadow-xl ring-1 ring-slate-200"
         >
           <ul className="max-h-72 overflow-y-auto py-1">
             {spaces.map((s) => {
@@ -80,7 +82,7 @@ export function SpaceSwitcher() {
                     className="flex min-h-14 w-full items-center gap-3 px-4 py-2 text-left hover:bg-slate-50"
                   >
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate font-semibold">{s.name}</span>
+                      <span className="line-clamp-2 font-semibold break-words">{s.name}</span>
                       <span className="block truncate text-sm text-slate-600">{subtitle(s)}</span>
                     </span>
                     {current && (
