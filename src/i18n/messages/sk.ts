@@ -221,6 +221,10 @@ export const sk: Messages = {
     'Zobrazuje sa posledných {n}. Zúžte filtre alebo exportujte CSV, aby ste videli všetko.',
   'history.export': 'Exportovať všetky výdavky (CSV)',
   'history.exporting': 'Pripravuje sa…',
+  'history.exportConfirm.title': 'Stiahnuť všetky výdavky?',
+  'history.exportConfirm.message':
+    'Do vášho zariadenia sa uloží súbor CSV so všetkými výdavkami v tomto priestore.',
+  'history.exportConfirm.confirm': 'Stiahnuť CSV',
 
   'csv.date': 'Dátum',
   'csv.description': 'Popis',

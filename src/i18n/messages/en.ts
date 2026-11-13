@@ -233,6 +233,10 @@ export const en = {
   'history.limit': 'Showing the latest {n}. Narrow the filters or export CSV to see everything.',
   'history.export': 'Export all expenses (CSV)',
   'history.exporting': 'Preparing…',
+  'history.exportConfirm.title': 'Download all expenses?',
+  'history.exportConfirm.message':
+    'This saves a CSV file with every expense in this space to your device.',
+  'history.exportConfirm.confirm': 'Download CSV',
 
   // CSV
   'csv.date': 'Date',

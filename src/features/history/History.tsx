@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { ExpenseRow } from '@/components/expenses/ExpenseRow'
 import {
   Button,
+  ConfirmDialog,
   EmptyState,
   ErrorState,
   InlineError,
@@ -28,6 +29,7 @@ export function History() {
   const [payer, setPayer] = useState('')
   const [category, setCategory] = useState('')
   const [exporting, setExporting] = useState(false)
+  const [confirmingExport, setConfirmingExport] = useState(false)
   const [exportError, setExportError] = useState<string | null>(null)
 
   const rangeInvalid = !!from && !!to && from > to
@@ -64,6 +66,7 @@ export function History() {
       setExportError(toAppError(e).message)
     } finally {
       setExporting(false)
+      setConfirmingExport(false)
     }
   }
 
@@ -186,10 +189,27 @@ export function History() {
       </div>
 
       <div className="mt-6">
-        <Button variant="secondary" full onClick={() => void exportCsv()} disabled={exporting}>
+        <Button
+          variant="secondary"
+          full
+          onClick={() => setConfirmingExport(true)}
+          disabled={exporting}
+        >
           {exporting ? t('history.exporting') : t('history.export')}
         </Button>
         <InlineError message={exportError} />
+        {confirmingExport && (
+          <ConfirmDialog
+            title={t('history.exportConfirm.title')}
+            message={t('history.exportConfirm.message')}
+            confirmLabel={t('history.exportConfirm.confirm')}
+            busyLabel={t('history.exporting')}
+            tone="primary"
+            busy={exporting}
+            onConfirm={() => void exportCsv()}
+            onCancel={() => setConfirmingExport(false)}
+          />
+        )}
       </div>
     </>
   )

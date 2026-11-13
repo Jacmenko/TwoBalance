@@ -36,7 +36,12 @@ function Layout() {
   const showFab = pathname === '/'
 
   return (
-    <div className="mx-auto min-h-dvh w-full max-w-md px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-32">
+    <div
+      className={`mx-auto min-h-dvh w-full max-w-md px-4 pt-[max(1rem,env(safe-area-inset-top))] ${
+        // Only reserve room for the floating button where there is one.
+        showFab ? 'pb-32' : 'pb-[max(1rem,env(safe-area-inset-bottom))]'
+      }`}
+    >
       {!online ? (
         <p role="status" className="mb-3 rounded-xl bg-amber-100 px-4 py-2 text-sm text-amber-900">
           {t('app.offline')}

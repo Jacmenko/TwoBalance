@@ -221,6 +221,10 @@ export const es: Messages = {
   'history.limit': 'Mostrando los últimos {n}. Acota los filtros o exporta el CSV para verlo todo.',
   'history.export': 'Exportar todos los gastos (CSV)',
   'history.exporting': 'Preparando…',
+  'history.exportConfirm.title': '¿Descargar todos los gastos?',
+  'history.exportConfirm.message':
+    'Se guardará en tu dispositivo un archivo CSV con todos los gastos de este espacio.',
+  'history.exportConfirm.confirm': 'Descargar CSV',
 
   'csv.date': 'Fecha',
   'csv.description': 'Descripción',
