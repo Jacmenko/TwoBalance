@@ -1,5 +1,7 @@
 // Money helpers. All amounts are integer cents. No floating-point money math.
 
+import { t } from '@/i18n/core'
+
 export const MAX_AMOUNT_CENTS = 100_000_000 // 1,000,000.00 EUR (matches DB check)
 
 export type ParseResult = { ok: true; cents: number } | { ok: false; error: string }
@@ -11,17 +13,17 @@ export type ParseResult = { ok: true; cents: number } | { ok: false; error: stri
  */
 export function parseAmountToCents(input: string): ParseResult {
   const s = input.trim()
-  if (s === '') return { ok: false, error: 'Enter an amount.' }
+  if (s === '') return { ok: false, error: t('amount.enter') }
   const m = /^(\d{1,9})(?:[.,](\d{1,2}))?$/.exec(s)
   if (!m) {
-    if (/[.,]\d{3,}$/.test(s)) return { ok: false, error: 'Use at most two decimal places.' }
-    return { ok: false, error: 'Enter a valid amount, e.g. 12.50.' }
+    if (/[.,]\d{3,}$/.test(s)) return { ok: false, error: t('amount.twoDecimals') }
+    return { ok: false, error: t('amount.invalid') }
   }
   const whole = Number(m[1])
   const frac = Number((m[2] ?? '').padEnd(2, '0'))
   const cents = whole * 100 + frac
-  if (cents <= 0) return { ok: false, error: 'Amount must be greater than zero.' }
-  if (cents > MAX_AMOUNT_CENTS) return { ok: false, error: 'Amount is too large (max 1,000,000).' }
+  if (cents <= 0) return { ok: false, error: t('amount.positive') }
+  if (cents > MAX_AMOUNT_CENTS) return { ok: false, error: t('amount.tooLarge') }
   return { ok: true, cents }
 }
 

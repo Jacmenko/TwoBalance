@@ -17,8 +17,10 @@ import { listAllExpenses, LIST_LIMIT } from '@/services/expense.service'
 import { toAppError } from '@/services/errors'
 import type { ExpenseFilters } from '@/types/domain'
 import { Link } from 'react-router-dom'
+import { useI18n } from '@/i18n/I18nProvider'
 
 export function History() {
+  const { t } = useI18n()
   const { space, memberName } = useSpace()
   const cats = useCategories()
   const [from, setFrom] = useState('')
@@ -67,14 +69,14 @@ export function History() {
 
   return (
     <>
-      <PageHeader title="History" />
+      <PageHeader title={t('history.title')} />
 
       <section
-        aria-label="Filters"
+        aria-label={t('history.filters')}
         className="grid grid-cols-2 gap-3 rounded-2xl bg-white p-4 ring-1 ring-slate-200"
       >
         <label className="min-w-0 text-sm font-medium text-slate-700">
-          From
+          {t('history.from')}
           <input
             type="date"
             className={`${inputClass} mt-1`}
@@ -83,7 +85,7 @@ export function History() {
           />
         </label>
         <label className="min-w-0 text-sm font-medium text-slate-700">
-          To
+          {t('history.to')}
           <input
             type="date"
             className={`${inputClass} mt-1`}
@@ -93,14 +95,14 @@ export function History() {
         </label>
         {!space.solo && (
           <label className="min-w-0 text-sm font-medium text-slate-700">
-            Paid by
+            {t('history.paidBy')}
             <select
               className={`${inputClass} mt-1`}
               value={payer}
               onChange={(e) => setPayer(e.target.value)}
             >
-              <option value="">Everyone</option>
-              <option value={space.me.id}>You</option>
+              <option value="">{t('history.everyone')}</option>
+              <option value={space.me.id}>{t('common.you')}</option>
               {space.partner && (
                 <option value={space.partner.id}>{space.partner.displayName}</option>
               )}
@@ -110,13 +112,13 @@ export function History() {
         <label
           className={`min-w-0 text-sm font-medium text-slate-700 ${space.solo ? 'col-span-2' : ''}`}
         >
-          Category
+          {t('history.category')}
           <select
             className={`${inputClass} mt-1`}
             value={category}
             onChange={(e) => setCategory(e.target.value)}
           >
-            <option value="">All categories</option>
+            <option value="">{t('history.allCategories')}</option>
             {cats.data?.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
@@ -125,7 +127,7 @@ export function History() {
           </select>
         </label>
         <div className="col-span-2">
-          <InlineError message={rangeInvalid ? '"From" must be on or before "To".' : null} />
+          <InlineError message={rangeInvalid ? t('history.rangeInvalid') : null} />
           {hasFilters && (
             <Button
               variant="ghost"
@@ -136,7 +138,7 @@ export function History() {
                 setCategory('')
               }}
             >
-              Clear filters
+              {t('history.clear')}
             </Button>
           )}
         </div>
@@ -152,16 +154,12 @@ export function History() {
           />
         ) : list.data.length === 0 ? (
           <EmptyState
-            title={hasFilters ? 'No expenses match these filters' : 'No expenses yet'}
-            hint={
-              hasFilters
-                ? 'Try widening the date range or clearing filters.'
-                : 'Add your first shared expense.'
-            }
+            title={hasFilters ? t('history.noMatch') : t('history.none')}
+            hint={hasFilters ? t('history.noMatchHint') : t('history.noneHint')}
             action={
               !hasFilters && (
                 <Link to="/expense/new" className="font-semibold text-emerald-800 underline">
-                  Add expense
+                  {t('app.addExpense')}
                 </Link>
               )
             }
@@ -180,7 +178,7 @@ export function History() {
             </ul>
             {list.data.length >= LIST_LIMIT && (
               <p className="mt-3 text-center text-sm text-slate-500">
-                Showing the latest {LIST_LIMIT}. Narrow the filters or export CSV to see everything.
+                {t('history.limit', { n: LIST_LIMIT })}
               </p>
             )}
           </>
@@ -189,7 +187,7 @@ export function History() {
 
       <div className="mt-6">
         <Button variant="secondary" full onClick={() => void exportCsv()} disabled={exporting}>
-          {exporting ? 'Preparing…' : 'Export all expenses (CSV)'}
+          {exporting ? t('history.exporting') : t('history.export')}
         </Button>
         <InlineError message={exportError} />
       </div>

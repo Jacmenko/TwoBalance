@@ -1,29 +1,30 @@
-/** Translate backend/network failures into safe, friendly messages. */
+/** Translate backend/network failures into safe, friendly messages (in the active language). */
+import { t } from '@/i18n/core'
 
-const KNOWN: Record<string, string> = {
-  invalid_invite: 'That invitation code is invalid, already used, or has expired.',
-  couple_full: 'This shared space already has two members.',
-  already_member: 'You are already a member of this space.',
-  already_solo: 'This space is already single-person.',
-  invalid_space_name: 'Enter a space name between 1 and 40 characters.',
-  invalid_display_name: 'Enter a name between 1 and 40 characters.',
-  not_authenticated: 'Your session is missing or expired.',
-  not_a_member: "You're not a member of a shared space.",
-  invalid_category: 'Please choose a valid category.',
-  expenses_amount_check: 'Amount must be greater than zero and at most 1,000,000.',
-  expenses_description_check: 'Description can be at most 120 characters.',
-}
+const KNOWN = [
+  'invalid_invite',
+  'couple_full',
+  'already_member',
+  'already_solo',
+  'invalid_space_name',
+  'invalid_display_name',
+  'not_authenticated',
+  'not_a_member',
+  'invalid_category',
+  'expenses_amount_check',
+  'expenses_description_check',
+] as const
 
-const AUTH_CODES: Record<string, string> = {
-  email_exists: 'That email is already linked to an account. Use "Sign in" instead.',
-  over_request_rate_limit: 'Too many attempts. Wait a few minutes and try again.',
-  validation_failed: 'Check the email and password and try again.',
-  invalid_credentials: 'Wrong email or password.',
-  weak_password: 'That password is too weak. Use at least 8 characters.',
-  same_password: 'That is already your password.',
-  email_not_confirmed: 'This email is not confirmed yet. In Supabase, turn off "Confirm email".',
-  email_address_invalid: 'Enter a valid email address.',
-}
+const AUTH_CODES = [
+  'email_exists',
+  'over_request_rate_limit',
+  'validation_failed',
+  'invalid_credentials',
+  'weak_password',
+  'same_password',
+  'email_not_confirmed',
+  'email_address_invalid',
+] as const
 
 export class AppError extends Error {
   readonly kind: 'network' | 'permission' | 'session' | 'known' | 'unknown'
@@ -45,27 +46,24 @@ function isNetworkError(e: unknown): boolean {
 export function toAppError(e: unknown): AppError {
   if (e instanceof AppError) return e
   if (isNetworkError(e)) {
-    return new AppError(
-      "You appear to be offline or the server can't be reached. Try again.",
-      'network',
-    )
+    return new AppError(t('error.network'), 'network')
   }
   const err = e as { message?: string; code?: string; status?: number }
   const msg = err?.message ?? ''
-  const authText = err?.code ? AUTH_CODES[err.code] : undefined
-  if (authText) return new AppError(authText, 'known')
-  for (const [key, text] of Object.entries(KNOWN)) {
+  const authCode = AUTH_CODES.find((c) => c === err?.code)
+  if (authCode) return new AppError(t(`error.${authCode}`), 'known')
+  for (const key of KNOWN) {
     if (msg.includes(key)) {
-      return new AppError(text, key === 'not_authenticated' ? 'session' : 'known')
+      return new AppError(t(`error.${key}`), key === 'not_authenticated' ? 'session' : 'known')
     }
   }
   if (err?.code === '42501' || /row-level security|permission denied/i.test(msg)) {
-    return new AppError("You don't have permission to do that.", 'permission')
+    return new AppError(t('error.permission'), 'permission')
   }
   if (err?.status === 401 || /jwt|not authenticated/i.test(msg)) {
-    return new AppError('Your session is missing or expired.', 'session')
+    return new AppError(t('error.not_authenticated'), 'session')
   }
-  return new AppError('Something went wrong. Please try again.', 'unknown')
+  return new AppError(t('error.unknown'), 'unknown')
 }
 
 export async function unwrap<T>(p: PromiseLike<{ data: T | null; error: unknown }>): Promise<T> {

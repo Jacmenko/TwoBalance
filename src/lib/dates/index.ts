@@ -1,6 +1,8 @@
 // Date helpers. Expense dates are calendar dates ("YYYY-MM-DD") and are never
 // converted through UTC timestamps, so they cannot shift by a day.
 
+import { getLocale } from '@/i18n/core'
+
 const pad = (n: number) => String(n).padStart(2, '0')
 
 export function toISODate(d: Date): string {
@@ -48,8 +50,8 @@ export function presetRange(
   }
 }
 
-/** Format "2026-03-05" using the device locale, without timezone shifts. */
-export function formatDate(iso: string, locale?: string): string {
+/** Format "2026-03-05" in the app language's locale, without timezone shifts. */
+export function formatDate(iso: string, locale: string = getLocale()): string {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso)
   if (!m) return iso
   const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]))

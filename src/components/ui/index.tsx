@@ -1,14 +1,16 @@
 import { useEffect, useRef, type ComponentProps, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
+import { useI18n } from '@/i18n/I18nProvider'
 
-export function Spinner({ label = 'Loading…' }: { label?: string }) {
+export function Spinner({ label }: { label?: string }) {
+  const { t } = useI18n()
   return (
     <div role="status" className="flex flex-col items-center gap-3 py-16 text-slate-500">
       <div
         aria-hidden
         className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-emerald-600"
       />
-      <span className="text-sm">{label}</span>
+      <span className="text-sm">{label ?? t('common.loading')}</span>
     </div>
   )
 }
@@ -46,19 +48,20 @@ export function Button({ variant = 'primary', full, className = '', ...props }: 
 export function ErrorState({
   message,
   onRetry,
-  title = 'Something went wrong',
+  title,
 }: {
   message: string
   onRetry?: () => void
   title?: string
 }) {
+  const { t } = useI18n()
   return (
     <div role="alert" className="rounded-2xl border border-rose-200 bg-rose-50 p-5 text-rose-900">
-      <p className="font-semibold">{title}</p>
+      <p className="font-semibold">{title ?? t('common.somethingWrong')}</p>
       <p className="mt-1 text-sm">{message}</p>
       {onRetry && (
         <Button variant="secondary" className="mt-4" onClick={onRetry}>
-          Try again
+          {t('common.tryAgain')}
         </Button>
       )}
     </div>
@@ -144,11 +147,12 @@ export function PageHeader({
   back?: string
   right?: ReactNode
 }) {
+  const { t } = useI18n()
   return (
     <header className="flex items-center gap-2 pb-4">
       <Link
         to={back}
-        aria-label="Back"
+        aria-label={t('common.back')}
         className="-ml-2 flex h-11 w-11 items-center justify-center rounded-full text-slate-700 hover:bg-slate-100"
       >
         <BackIcon />
@@ -163,7 +167,7 @@ export function ConfirmDialog({
   title,
   message,
   confirmLabel,
-  busyLabel = 'Deleting…',
+  busyLabel,
   tone = 'danger',
   busy,
   error,
@@ -180,6 +184,7 @@ export function ConfirmDialog({
   onConfirm: () => void
   onCancel: () => void
 }) {
+  const { t } = useI18n()
   const cancelRef = useRef<HTMLButtonElement>(null)
   useEffect(() => {
     cancelRef.current?.focus()
@@ -205,10 +210,10 @@ export function ConfirmDialog({
         <InlineError message={error} />
         <div className="mt-5 flex gap-3">
           <Button ref={cancelRef} variant="secondary" full onClick={onCancel} disabled={busy}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button variant={tone} full onClick={onConfirm} disabled={busy}>
-            {busy ? busyLabel : confirmLabel}
+            {busy ? (busyLabel ?? t('common.deleting')) : confirmLabel}
           </Button>
         </div>
       </div>

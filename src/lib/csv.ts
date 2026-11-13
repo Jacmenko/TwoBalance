@@ -1,3 +1,4 @@
+import { t } from '@/i18n/core'
 import { centsToInputString } from '@/lib/money/format'
 import type { Category, Expense, Member } from '@/types/domain'
 
@@ -15,7 +16,9 @@ export function expensesToCsv(
 ): string {
   const memberName = new Map(members.map((m) => [m.id, m.displayName]))
   const catName = new Map(categories.map((c) => [c.id, c.name]))
-  const rows = [['Date', 'Description', 'Category', 'Paid by', 'Amount (EUR)']]
+  const rows = [
+    [t('csv.date'), t('csv.description'), t('csv.category'), t('csv.paidBy'), t('csv.amount')],
+  ]
   for (const e of expenses) {
     if (e.deletedAt) continue
     rows.push([
