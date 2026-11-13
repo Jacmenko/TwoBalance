@@ -19,7 +19,7 @@ export default defineConfig({
         short_name: 'TwoBalance',
         description: 'A private shared expense tracker for two.',
         theme_color: '#ffffff',
-        background_color: '#f8fafc',
+        background_color: '#fff5f7',
         display: 'standalone',
         orientation: 'portrait',
         start_url: '/',
