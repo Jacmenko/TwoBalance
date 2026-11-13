@@ -41,6 +41,7 @@ export interface ExpenseFilters {
 
 export interface SpaceInfo {
   coupleId: string
+  name: string
   me: Member
   /** null until the second person has joined */
   partner: Member | null

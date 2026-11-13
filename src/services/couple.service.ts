@@ -16,28 +16,49 @@ const toMember = (r: MemberRow): Member => ({
   displayName: r.display_name,
 })
 
-/** Load the current user's membership and partner (RLS limits rows to own couple). */
-export async function fetchSpace(userId: string): Promise<SpaceInfo | null> {
-  const rows = await unwrap<MemberRow[]>(
-    supabase.from('members').select('id, couple_id, user_id, display_name').order('created_at'),
+/** All spaces the current user belongs to, oldest first (RLS limits rows to own spaces). */
+export async function fetchSpaces(userId: string): Promise<SpaceInfo[]> {
+  const [members, couples] = await Promise.all([
+    unwrap<MemberRow[]>(
+      supabase.from('members').select('id, couple_id, user_id, display_name').order('created_at'),
+    ),
+    unwrap<{ id: string; name: string }[]>(supabase.from('couples').select('id, name')),
+  ])
+  const names = new Map(couples.map((c) => [c.id, c.name]))
+  return members
+    .filter((r) => r.user_id === userId)
+    .map((me) => {
+      const partner = members.find((r) => r.couple_id === me.couple_id && r.user_id !== userId)
+      return {
+        coupleId: me.couple_id,
+        name: names.get(me.couple_id) ?? 'Our space',
+        me: toMember(me),
+        partner: partner ? toMember(partner) : null,
+      }
+    })
+}
+
+export async function createSpace(
+  displayName: string,
+  spaceName: string,
+): Promise<{ coupleId: string; inviteCode: string }> {
+  const rows = await unwrap<{ couple_id: string; invite_code: string }[]>(
+    supabase.rpc('create_couple', { p_display_name: displayName, p_space_name: spaceName }),
   )
-  const me = rows.find((r) => r.user_id === userId)
-  if (!me) return null
-  const partner = rows.find((r) => r.user_id !== userId && r.couple_id === me.couple_id)
-  return { coupleId: me.couple_id, me: toMember(me), partner: partner ? toMember(partner) : null }
+  return { coupleId: rows[0].couple_id, inviteCode: rows[0].invite_code }
 }
 
-export async function createSpace(displayName: string): Promise<{ inviteCode: string }> {
-  const rows = await unwrap<{ invite_code: string }[]>(
-    supabase.rpc('create_couple', { p_display_name: displayName }),
+export async function joinSpace(code: string, displayName: string): Promise<{ coupleId: string }> {
+  const rows = await unwrap<{ couple_id: string }[]>(
+    supabase.rpc('join_couple', { p_code: code, p_display_name: displayName }),
   )
-  return { inviteCode: rows[0].invite_code }
+  return { coupleId: rows[0].couple_id }
 }
 
-export async function joinSpace(code: string, displayName: string): Promise<void> {
-  await unwrap(supabase.rpc('join_couple', { p_code: code, p_display_name: displayName }))
+export async function regenerateInvite(coupleId: string): Promise<string> {
+  return unwrap<string>(supabase.rpc('regenerate_invite', { p_couple_id: coupleId }))
 }
 
-export async function regenerateInvite(): Promise<string> {
-  return unwrap<string>(supabase.rpc('regenerate_invite'))
+export async function renameSpace(coupleId: string, name: string): Promise<void> {
+  await unwrap(supabase.rpc('rename_couple', { p_couple_id: coupleId, p_name: name }))
 }

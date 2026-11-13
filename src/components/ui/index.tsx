@@ -115,7 +115,7 @@ export function Field({
 }
 
 export const inputClass =
-  'block min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 text-slate-900 placeholder:text-slate-400'
+  'block min-h-12 w-full min-w-0 max-w-full rounded-xl border border-slate-300 bg-white px-4 text-slate-900 placeholder:text-slate-400'
 
 export function BackIcon() {
   return (

@@ -24,42 +24,54 @@ const iconProps = {
 } as const
 
 const navLink =
-  'flex min-h-11 items-center gap-1.5 rounded-full px-3 text-sm font-medium text-slate-700 hover:bg-slate-100'
+  'flex min-h-12 min-w-14 flex-col items-center justify-center gap-0.5 rounded-xl px-2 text-[11px] font-medium text-slate-700 hover:bg-slate-100'
 
 export function Dashboard() {
   const { space, memberName } = useSpace()
   const { isAnonymous } = useAuth()
-  const totals = usePaidTotals(space.me.id)
-  const recent = useExpenseList({}, 10)
+  const totals = usePaidTotals(space.coupleId, space.me.id)
+  const recent = useExpenseList(space.coupleId, {}, 10)
   const cats = useCategories()
   const catName = (id: string) => cats.data?.find((c) => c.id === id)?.name ?? '—'
 
   return (
     <>
-      <header className="flex items-center justify-between pb-4">
-        <h1 className="text-xl font-bold">TwoBalance</h1>
-        <nav aria-label="Main" className="-mr-2 flex">
-          <Link to="/history" className={navLink}>
-            <svg {...iconProps}>
-              <circle cx="12" cy="12" r="9" />
-              <path d="M12 7v5l3 2" />
-            </svg>
-            History
-          </Link>
-          <Link to="/stats" className={navLink}>
-            <svg {...iconProps}>
-              <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />
-            </svg>
-            Stats
-          </Link>
-          <Link to="/account" className={navLink}>
-            <svg {...iconProps}>
-              <circle cx="12" cy="8" r="4" />
-              <path d="M4 21c0-4 4-6 8-6s8 2 8 6" />
-            </svg>
-            Account
-          </Link>
-        </nav>
+      <header className="pb-4">
+        <div className="flex items-center justify-between gap-2">
+          <h1 className="text-xl font-bold">TwoBalance</h1>
+          <nav aria-label="Main" className="-mr-2 flex">
+            <Link to="/history" className={navLink}>
+              <svg {...iconProps}>
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 7v5l3 2" />
+              </svg>
+              History
+            </Link>
+            <Link to="/stats" className={navLink}>
+              <svg {...iconProps}>
+                <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />
+              </svg>
+              Stats
+            </Link>
+            <Link to="/account" className={navLink}>
+              <svg {...iconProps}>
+                <circle cx="12" cy="8" r="4" />
+                <path d="M4 21c0-4 4-6 8-6s8 2 8 6" />
+              </svg>
+              Account
+            </Link>
+          </nav>
+        </div>
+        <Link
+          to="/spaces"
+          aria-label={`Current space: ${space.name}. Switch or add spaces`}
+          className="inline-flex min-h-11 max-w-full items-center gap-1.5 rounded-full bg-white px-4 text-sm font-semibold text-slate-800 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50"
+        >
+          <span className="truncate">{space.name}</span>
+          <span aria-hidden className="text-slate-500">
+            ▾
+          </span>
+        </Link>
       </header>
 
       {totals.isPending ? (
@@ -73,7 +85,7 @@ export function Dashboard() {
         <BalanceCard cents={balanceCents(totals.data)} />
       )}
 
-      {!space.partner && <InviteBanner />}
+      {!space.partner && <InviteBanner key={space.coupleId} coupleId={space.coupleId} />}
       {isAnonymous && <SecureNudge />}
 
       <section className="mt-8" aria-labelledby="recent-h">
@@ -131,7 +143,7 @@ function SecureNudge() {
   )
 }
 
-function InviteBanner() {
+function InviteBanner({ coupleId }: { coupleId: string }) {
   const [code, setCode] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -140,7 +152,7 @@ function InviteBanner() {
     setBusy(true)
     setError(null)
     try {
-      setCode(await regenerateInvite())
+      setCode(await regenerateInvite(coupleId))
     } catch (e) {
       setError(toAppError(e).message)
     } finally {

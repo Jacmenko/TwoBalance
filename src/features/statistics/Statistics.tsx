@@ -23,14 +23,14 @@ const PRESETS: { id: RangePreset; label: string }[] = [
 ]
 
 export function Statistics() {
-  const { memberName } = useSpace()
+  const { space, memberName } = useSpace()
   const cats = useCategories()
   const [preset, setPreset] = useState<RangePreset>('this-month')
   const [custom, setCustom] = useState(() => presetRange('this-month'))
 
   const range = preset === 'custom' ? custom : presetRange(preset)
   const rangeInvalid = !range.from || !range.to || range.from > range.to
-  const q = useAllExpenses(rangeInvalid ? { from: '9999-12-31' } : range)
+  const q = useAllExpenses(space.coupleId, rangeInvalid ? { from: '9999-12-31' } : range)
   const summary = useMemo(() => summarize(q.data ?? []), [q.data])
   const catName = (id: string) => cats.data?.find((c) => c.id === id)?.name ?? 'Unknown'
 

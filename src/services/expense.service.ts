@@ -50,10 +50,11 @@ export async function listCategories(): Promise<Category[]> {
 
 /** Non-deleted expenses, newest first. Filters by expense_date (not created_at). */
 export async function listExpenses(
+  coupleId: string,
   filters: ExpenseFilters = {},
   limit: number = LIST_LIMIT,
 ): Promise<Expense[]> {
-  let q = supabase.from('expenses').select(COLUMNS).is('deleted_at', null)
+  let q = supabase.from('expenses').select(COLUMNS).eq('couple_id', coupleId).is('deleted_at', null)
   if (filters.from) q = q.gte('expense_date', filters.from)
   if (filters.to) q = q.lte('expense_date', filters.to)
   if (filters.payerMemberId) q = q.eq('payer_member_id', filters.payerMemberId)
@@ -68,11 +69,18 @@ export async function listExpenses(
 }
 
 /** All matching expenses, paged past the API's per-request row cap. */
-export async function listAllExpenses(filters: ExpenseFilters = {}): Promise<Expense[]> {
+export async function listAllExpenses(
+  coupleId: string,
+  filters: ExpenseFilters = {},
+): Promise<Expense[]> {
   const PAGE = 1000
   const out: Expense[] = []
   for (let offset = 0; ; offset += PAGE) {
-    let q = supabase.from('expenses').select(COLUMNS).is('deleted_at', null)
+    let q = supabase
+      .from('expenses')
+      .select(COLUMNS)
+      .eq('couple_id', coupleId)
+      .is('deleted_at', null)
     if (filters.from) q = q.gte('expense_date', filters.from)
     if (filters.to) q = q.lte('expense_date', filters.to)
     if (filters.payerMemberId) q = q.eq('payer_member_id', filters.payerMemberId)
@@ -89,9 +97,15 @@ export async function listAllExpenses(filters: ExpenseFilters = {}): Promise<Exp
   }
 }
 
-export async function getExpense(id: string): Promise<Expense | null> {
+export async function getExpense(coupleId: string, id: string): Promise<Expense | null> {
   const row = await unwrap<ExpenseRow | null>(
-    supabase.from('expenses').select(COLUMNS).eq('id', id).is('deleted_at', null).maybeSingle(),
+    supabase
+      .from('expenses')
+      .select(COLUMNS)
+      .eq('couple_id', coupleId)
+      .eq('id', id)
+      .is('deleted_at', null)
+      .maybeSingle(),
   )
   return row ? toExpense(row) : null
 }
@@ -151,9 +165,9 @@ export async function deleteExpense(id: string): Promise<void> {
 }
 
 /** Totals paid per side, aggregated in the database; balance is derived client-side. */
-export async function fetchPaidTotals(myMemberId: string): Promise<PaidTotals> {
+export async function fetchPaidTotals(coupleId: string, myMemberId: string): Promise<PaidTotals> {
   const rows = await unwrap<{ payer_member_id: string; total_paid_cents: number }[]>(
-    supabase.rpc('paid_totals'),
+    supabase.rpc('paid_totals', { p_couple_id: coupleId }),
   )
   let mine = 0
   let other = 0

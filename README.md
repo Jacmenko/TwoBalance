@@ -76,6 +76,9 @@ terms, backups and inactivity rules (free Supabase projects can pause when idle)
 ## How it works
 
 - **Identity:** Supabase anonymous sign-in; the session persists in browser storage. No passwords.
+- **Spaces:** one account can belong to several named spaces (each still has exactly two people),
+  e.g. "Home" and "Rome trip". Switch, add, join and rename them from the dashboard (tap the space
+  name). The current space is remembered per device; balances and history are per space.
 - **Create / join:** `create_couple` and `join_couple` are `SECURITY DEFINER` RPCs. Invite codes are
   12 random characters (≈60 bits, from `gen_random_bytes`), stored only as a SHA-256 hash, single
   use, expire after 7 days. Joining locks the couple row, so a third member can never be added.

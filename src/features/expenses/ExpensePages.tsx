@@ -49,7 +49,7 @@ export function EditExpensePage() {
   const nav = useNavigate()
   const invalidate = useInvalidateLedger()
   const cats = useCategories()
-  const exp = useExpense(id)
+  const exp = useExpense(space.coupleId, id)
   const [confirming, setConfirming] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)

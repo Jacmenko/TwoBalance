@@ -25,17 +25,23 @@ export function useInvalidateLedger() {
 export const useCategories = () =>
   useQuery({ queryKey: ['categories'], queryFn: listCategories, staleTime: Infinity })
 
-export const useExpenseList = (filters: ExpenseFilters, limit: number) =>
+export const useExpenseList = (coupleId: string, filters: ExpenseFilters, limit: number) =>
   useQuery({
-    queryKey: ['expenses', 'list', filters, limit],
-    queryFn: () => listExpenses(filters, limit),
+    queryKey: ['expenses', 'list', coupleId, filters, limit],
+    queryFn: () => listExpenses(coupleId, filters, limit),
   })
 
-export const useAllExpenses = (filters: ExpenseFilters) =>
-  useQuery({ queryKey: ['expenses', 'all', filters], queryFn: () => listAllExpenses(filters) })
+export const useAllExpenses = (coupleId: string, filters: ExpenseFilters) =>
+  useQuery({
+    queryKey: ['expenses', 'all', coupleId, filters],
+    queryFn: () => listAllExpenses(coupleId, filters),
+  })
 
-export const useExpense = (id: string) =>
-  useQuery({ queryKey: ['expense', id], queryFn: () => getExpense(id) })
+export const useExpense = (coupleId: string, id: string) =>
+  useQuery({ queryKey: ['expense', coupleId, id], queryFn: () => getExpense(coupleId, id) })
 
-export const usePaidTotals = (myMemberId: string) =>
-  useQuery({ queryKey: ['totals', myMemberId], queryFn: () => fetchPaidTotals(myMemberId) })
+export const usePaidTotals = (coupleId: string, myMemberId: string) =>
+  useQuery({
+    queryKey: ['totals', coupleId, myMemberId],
+    queryFn: () => fetchPaidTotals(coupleId, myMemberId),
+  })

@@ -35,7 +35,11 @@ export function History() {
     payerMemberId: payer || undefined,
     categoryId: category || undefined,
   }
-  const list = useExpenseList(rangeInvalid ? { from: '9999-12-31' } : filters, LIST_LIMIT)
+  const list = useExpenseList(
+    space.coupleId,
+    rangeInvalid ? { from: '9999-12-31' } : filters,
+    LIST_LIMIT,
+  )
   const hasFilters = !!(from || to || payer || category)
   const catName = (id: string) => cats.data?.find((c) => c.id === id)?.name ?? '—'
 
@@ -43,7 +47,7 @@ export function History() {
     setExporting(true)
     setExportError(null)
     try {
-      const all = await listAllExpenses()
+      const all = await listAllExpenses(space.coupleId)
       const members = [space.me, ...(space.partner ? [space.partner] : [])]
       const csv = expensesToCsv(all, members, cats.data ?? [])
       const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
@@ -69,7 +73,7 @@ export function History() {
         aria-label="Filters"
         className="grid grid-cols-2 gap-3 rounded-2xl bg-white p-4 ring-1 ring-slate-200"
       >
-        <label className="text-sm font-medium text-slate-700">
+        <label className="min-w-0 text-sm font-medium text-slate-700">
           From
           <input
             type="date"
@@ -78,7 +82,7 @@ export function History() {
             onChange={(e) => setFrom(e.target.value)}
           />
         </label>
-        <label className="text-sm font-medium text-slate-700">
+        <label className="min-w-0 text-sm font-medium text-slate-700">
           To
           <input
             type="date"
@@ -87,7 +91,7 @@ export function History() {
             onChange={(e) => setTo(e.target.value)}
           />
         </label>
-        <label className="text-sm font-medium text-slate-700">
+        <label className="min-w-0 text-sm font-medium text-slate-700">
           Paid by
           <select
             className={`${inputClass} mt-1`}
@@ -99,7 +103,7 @@ export function History() {
             {space.partner && <option value={space.partner.id}>{space.partner.displayName}</option>}
           </select>
         </label>
-        <label className="text-sm font-medium text-slate-700">
+        <label className="min-w-0 text-sm font-medium text-slate-700">
           Category
           <select
             className={`${inputClass} mt-1`}

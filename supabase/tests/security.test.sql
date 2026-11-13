@@ -62,7 +62,7 @@ select pg_temp.as_anon();
 select pg_temp.expect_fail('select * from public.expenses', 'permission denied');
 select pg_temp.expect_fail('select * from public.couples', 'permission denied');
 select pg_temp.expect_fail('select * from public.members', 'permission denied');
-select pg_temp.expect_fail($$select * from public.create_couple('X')$$, 'permission denied');
+select pg_temp.expect_fail($$select * from public.create_couple('X','S')$$, 'permission denied');
 select pg_temp.expect_fail($$select * from public.join_couple('AAAA-AAAA-AAAA','X')$$, 'permission denied');
 select pg_temp.reset_role();
 
@@ -71,7 +71,7 @@ select pg_temp.as_user('aaaaaaaa-0000-0000-0000-000000000001');
 do $$
 declare r record;
 begin
-  select * into r from public.create_couple('Alice');
+  select * into r from public.create_couple('Alice', 'Home');
   insert into ctx values ('couple1', r.couple_id::text), ('member1', r.member_id::text),
                          ('code1', r.invite_code);
   if r.invite_code !~ '^[A-Z2-9]{4}-[A-Z2-9]{4}-[A-Z2-9]{4}$' then
@@ -79,8 +79,10 @@ begin
   end if;
 end $$;
 
--- cannot create a second couple
-select pg_temp.expect_fail($$select * from public.create_couple('Alice again')$$, 'already_member');
+-- cannot join own space with its own code
+select pg_temp.expect_fail(
+  format($f$select * from public.join_couple(%L,'Alice again')$f$, (select v from ctx where k='code1')),
+  'already_member');
 
 -- invite hash is not readable via the table API
 select pg_temp.expect_fail('select invite_code_hash from public.couples', 'permission denied');
@@ -143,7 +145,7 @@ select pg_temp.as_user('aaaaaaaa-0000-0000-0000-000000000003');
 do $$
 declare r record;
 begin
-  select * into r from public.create_couple('Carol');
+  select * into r from public.create_couple('Carol', 'Carol space');
   insert into ctx values ('couple3', r.couple_id::text), ('member3', r.member_id::text),
                          ('code3', r.invite_code);
 end $$;
@@ -182,7 +184,7 @@ begin
   perform pg_temp.expect_fail(format($f$insert into public.expenses
     (couple_id, payer_member_id, category_id, amount_cents, description, expense_date)
     values (%L,%L,'99999999-0000-4000-8000-000000000001',100,'x',current_date)$f$,
-    (select v from ctx where k='couple1'), (select v from ctx where k='member1')), 'violates foreign key');
+    (select v from ctx where k='couple1'), (select v from ctx where k='member1')), 'invalid_category');
 
   -- payer from another couple is rejected
   perform pg_temp.expect_fail(format($f$insert into public.expenses
@@ -208,9 +210,9 @@ begin
   if (select count(*) from public.expenses) <> 1 then raise exception 'FAIL: partner cannot see expense'; end if;
   if (select count(*) from public.members) <> 2 then raise exception 'FAIL: partner cannot see members'; end if;
   update public.expenses set amount_cents = 1500;
-  if (select total_paid_cents from public.paid_totals()) <> 1500 then raise exception 'FAIL: paid_totals after edit'; end if;
+  if (select total_paid_cents from public.paid_totals((select v::uuid from ctx where k='couple1'))) <> 1500 then raise exception 'FAIL: paid_totals after edit'; end if;
   update public.expenses set deleted_at = now();
-  if (select count(*) from public.paid_totals()) <> 0 then raise exception 'FAIL: deleted expense counted'; end if;
+  if (select count(*) from public.paid_totals((select v::uuid from ctx where k='couple1'))) <> 0 then raise exception 'FAIL: deleted expense counted'; end if;
 end $$;
 select pg_temp.reset_role();
 
@@ -230,6 +232,56 @@ do $$
 begin
   if (select amount_cents from public.expenses) <> 1500 then raise exception 'FAIL: outsider modified expense'; end if;
 end $$;
+
+-- 8b. Several named spaces per account; rename; per-space invite --------------------
+select pg_temp.as_user('aaaaaaaa-0000-0000-0000-000000000001');
+do $$
+declare r record;
+begin
+  select * into r from public.create_couple('Alice', '  Trip  ');
+  insert into ctx values ('couple1b', r.couple_id::text);
+  if (select count(*) from public.members where user_id = 'aaaaaaaa-0000-0000-0000-000000000001') <> 2 then
+    raise exception 'FAIL: user should belong to two spaces';
+  end if;
+  if (select name from public.couples where id = r.couple_id) <> 'Trip' then
+    raise exception 'FAIL: space name not stored/trimmed';
+  end if;
+  perform pg_temp.expect_fail($q$select * from public.create_couple('Alice', '   ')$q$, 'invalid_space_name');
+  -- a new invite for the second space does not touch the first
+  perform public.regenerate_invite(r.couple_id);
+  -- totals are per space
+  if (select count(*) from public.paid_totals(r.couple_id)) <> 0 then
+    raise exception 'FAIL: second space should have no totals';
+  end if;
+end $$;
+select pg_temp.reset_role();
+
+-- an outsider can neither rename nor re-invite another couple's space, nor read its totals
+select pg_temp.as_user('aaaaaaaa-0000-0000-0000-000000000003');
+do $$
+begin
+  perform pg_temp.expect_fail(format($f$select public.rename_couple(%L,'Hacked')$f$,
+    (select v from ctx where k='couple1')), 'not_a_member');
+  perform pg_temp.expect_fail(format($f$select public.regenerate_invite(%L)$f$,
+    (select v from ctx where k='couple1')), 'not_a_member');
+  if (select count(*) from public.paid_totals((select v::uuid from ctx where k='couple1'))) <> 0 then
+    raise exception 'FAIL: outsider sees totals';
+  end if;
+end $$;
+select pg_temp.reset_role();
+
+-- a member can rename; a full space cannot issue a new invite
+select pg_temp.as_user('aaaaaaaa-0000-0000-0000-000000000002');
+do $$
+begin
+  perform public.rename_couple((select v::uuid from ctx where k='couple1'), ' Our home ');
+  if (select name from public.couples where id = (select v::uuid from ctx where k='couple1')) <> 'Our home' then
+    raise exception 'FAIL: rename did not apply';
+  end if;
+  perform pg_temp.expect_fail(format($f$select public.regenerate_invite(%L)$f$,
+    (select v from ctx where k='couple1')), 'couple_full');
+end $$;
+select pg_temp.reset_role();
 
 -- 9. Anonymous-role cannot reach privileged helpers -----------------------------
 select pg_temp.as_user('aaaaaaaa-0000-0000-0000-000000000002');

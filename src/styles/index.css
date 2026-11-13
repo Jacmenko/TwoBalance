@@ -11,6 +11,18 @@ body,
   min-height: 100%;
 }
 
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* iOS Safari gives date inputs an intrinsic width that can overflow grid cells. */
+input[type='date'] {
+  min-width: 0;
+  max-width: 100%;
+}
+
 body {
   /* Soft hearts pattern: two offset hearts per 120px tile, kept faint for readability. */
   background-color: #fff5f7;
