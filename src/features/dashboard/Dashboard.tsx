@@ -25,7 +25,7 @@ const iconProps = {
 } as const
 
 const navLink =
-  'flex min-h-12 min-w-12 flex-col items-center justify-center gap-0.5 rounded-xl px-1.5 text-[11px] font-medium text-slate-700 hover:bg-slate-100'
+  'flex min-h-12 min-w-11 flex-col items-center justify-center gap-0.5 rounded-xl px-1 text-[11px] font-medium text-slate-700 hover:bg-slate-100'
 
 export function Dashboard() {
   const { space, memberName } = useSpace()

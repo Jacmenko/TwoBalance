@@ -40,7 +40,7 @@ export function SpaceSwitcher() {
           TwoBalance
         </span>
         <span className="flex max-w-full items-center gap-1">
-          <span className="line-clamp-2 text-xl leading-tight font-bold break-words">
+          <span className="line-clamp-2 text-lg leading-tight font-bold text-balance sm:text-xl">
             {space.name}
           </span>
           <svg
@@ -82,7 +82,7 @@ export function SpaceSwitcher() {
                     className="flex min-h-14 w-full items-center gap-3 px-4 py-2 text-left hover:bg-slate-50"
                   >
                     <span className="min-w-0 flex-1">
-                      <span className="line-clamp-2 font-semibold break-words">{s.name}</span>
+                      <span className="line-clamp-2 font-semibold text-balance">{s.name}</span>
                       <span className="block truncate text-sm text-slate-600">{subtitle(s)}</span>
                     </span>
                     {current && (
