@@ -35,6 +35,7 @@ export function NewExpensePage() {
         <ExpenseForm
           categories={cats.data}
           payerName={`${space.me.displayName} (you)`}
+          solo={space.solo}
           submitLabel="Save expense"
           onSubmit={save}
         />
@@ -99,6 +100,7 @@ export function EditExpensePage() {
         categories={cats.data}
         initial={exp.data}
         payerName={payer === 'You' ? `${space.me.displayName} (you)` : payer}
+        solo={space.solo}
         submitLabel="Save changes"
         onSubmit={save}
         onDelete={() => setConfirming(true)}

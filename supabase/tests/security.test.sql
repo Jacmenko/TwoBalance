@@ -62,7 +62,7 @@ select pg_temp.as_anon();
 select pg_temp.expect_fail('select * from public.expenses', 'permission denied');
 select pg_temp.expect_fail('select * from public.couples', 'permission denied');
 select pg_temp.expect_fail('select * from public.members', 'permission denied');
-select pg_temp.expect_fail($$select * from public.create_couple('X','S')$$, 'permission denied');
+select pg_temp.expect_fail($$select * from public.create_couple('X','S',false)$$, 'permission denied');
 select pg_temp.expect_fail($$select * from public.join_couple('AAAA-AAAA-AAAA','X')$$, 'permission denied');
 select pg_temp.reset_role();
 
@@ -280,6 +280,46 @@ begin
   end if;
   perform pg_temp.expect_fail(format($f$select public.regenerate_invite(%L)$f$,
     (select v from ctx where k='couple1')), 'couple_full');
+end $$;
+select pg_temp.reset_role();
+
+-- 8c. Solo (single-person) spaces ------------------------------------------------
+select pg_temp.as_user('aaaaaaaa-0000-0000-0000-000000000004');
+do $$
+declare r record;
+begin
+  select * into r from public.create_couple('Dan', 'Just me', true);
+  insert into ctx values ('couple4', r.couple_id::text);
+  if r.invite_code is not null then
+    raise exception 'FAIL: solo space must not have an invite code';
+  end if;
+  if not (select solo from public.couples where id = r.couple_id) then
+    raise exception 'FAIL: solo flag not set';
+  end if;
+  -- nobody can join a solo space (no invite exists)
+  perform pg_temp.expect_fail($q$select * from public.join_couple('AAAA-AAAA-AAAA','X')$q$, 'invalid_invite');
+end $$;
+select pg_temp.reset_role();
+
+-- an outsider cannot convert someone else's solo space
+select pg_temp.as_user('aaaaaaaa-0000-0000-0000-000000000003');
+do $$
+begin
+  perform pg_temp.expect_fail(format($f$select public.regenerate_invite(%L)$f$,
+    (select v from ctx where k='couple4')), 'not_a_member');
+end $$;
+select pg_temp.reset_role();
+
+-- the owner can turn it into a shared space by inviting someone
+select pg_temp.as_user('aaaaaaaa-0000-0000-0000-000000000004');
+do $$
+declare c text;
+begin
+  c := public.regenerate_invite((select v::uuid from ctx where k='couple4'));
+  if c is null then raise exception 'FAIL: no invite returned'; end if;
+  if (select solo from public.couples where id = (select v::uuid from ctx where k='couple4')) then
+    raise exception 'FAIL: space should no longer be solo';
+  end if;
 end $$;
 select pg_temp.reset_role();
 

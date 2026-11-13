@@ -91,19 +91,25 @@ export function History() {
             onChange={(e) => setTo(e.target.value)}
           />
         </label>
-        <label className="min-w-0 text-sm font-medium text-slate-700">
-          Paid by
-          <select
-            className={`${inputClass} mt-1`}
-            value={payer}
-            onChange={(e) => setPayer(e.target.value)}
-          >
-            <option value="">Everyone</option>
-            <option value={space.me.id}>You</option>
-            {space.partner && <option value={space.partner.id}>{space.partner.displayName}</option>}
-          </select>
-        </label>
-        <label className="min-w-0 text-sm font-medium text-slate-700">
+        {!space.solo && (
+          <label className="min-w-0 text-sm font-medium text-slate-700">
+            Paid by
+            <select
+              className={`${inputClass} mt-1`}
+              value={payer}
+              onChange={(e) => setPayer(e.target.value)}
+            >
+              <option value="">Everyone</option>
+              <option value={space.me.id}>You</option>
+              {space.partner && (
+                <option value={space.partner.id}>{space.partner.displayName}</option>
+              )}
+            </select>
+          </label>
+        )}
+        <label
+          className={`min-w-0 text-sm font-medium text-slate-700 ${space.solo ? 'col-span-2' : ''}`}
+        >
           Category
           <select
             className={`${inputClass} mt-1`}

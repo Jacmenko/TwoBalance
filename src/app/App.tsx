@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { AuthProvider } from '@/features/auth/AuthProvider'
 import { AccountPage } from '@/features/auth/AccountPage'
-import { SpacesPage } from '@/features/shared-space/SpacesPage'
+import { NewSpacePage } from '@/features/shared-space/NewSpacePage'
 import { SpaceProvider, useSpace } from '@/features/shared-space/SpaceProvider'
 import { Dashboard } from '@/features/dashboard/Dashboard'
 import { History } from '@/features/history/History'
@@ -109,7 +109,7 @@ export function App() {
               <Route path="history" element={<History />} />
               <Route path="stats" element={<Statistics />} />
               <Route path="account" element={<AccountPage />} />
-              <Route path="spaces" element={<SpacesPage />} />
+              <Route path="spaces/new" element={<NewSpacePage />} />
               <Route path="expense/new" element={<NewExpensePage />} />
               <Route path="expense/:id" element={<EditExpensePage />} />
               <Route path="*" element={<Navigate to="/" replace />} />

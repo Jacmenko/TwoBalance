@@ -14,6 +14,7 @@ export function SpaceForm({
   const [mode, setMode] = useState<'create' | 'join'>('create')
   const [name, setName] = useState(defaultName)
   const [spaceName, setSpaceName] = useState('')
+  const [solo, setSolo] = useState(false)
   const [code, setCode] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -43,8 +44,8 @@ export function SpaceForm({
     setBusy(true)
     try {
       if (mode === 'create') {
-        const { coupleId, inviteCode } = await createSpace(n, sn)
-        await enterSpace(coupleId, inviteCode)
+        const { coupleId, inviteCode } = await createSpace(n, sn, solo)
+        await enterSpace(coupleId, inviteCode ?? undefined)
       } else {
         const { coupleId } = await joinSpace(code, n)
         await enterSpace(coupleId)
@@ -94,6 +95,34 @@ export function SpaceForm({
             />
           </Field>
         )}
+        {mode === 'create' && (
+          <fieldset>
+            <legend className="mb-1 block text-sm font-medium text-slate-700">
+              Who is it for?
+            </legend>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { value: false, label: 'Me and a partner', hint: 'Split 50/50' },
+                { value: true, label: 'Just me', hint: 'Track my own spending' },
+              ].map((o) => (
+                <label
+                  key={o.label}
+                  className={`flex min-h-16 cursor-pointer flex-col justify-center rounded-xl border px-3 py-2 ${solo === o.value ? 'border-emerald-600 bg-emerald-50 ring-1 ring-emerald-600' : 'border-slate-300 bg-white'}`}
+                >
+                  <input
+                    type="radio"
+                    name="space-kind"
+                    className="sr-only"
+                    checked={solo === o.value}
+                    onChange={() => setSolo(o.value)}
+                  />
+                  <span className="text-sm font-semibold">{o.label}</span>
+                  <span className="text-xs text-slate-600">{o.hint}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        )}
         <Field label="Your name" htmlFor="name" error={nameError}>
           <input
             id="name"
@@ -122,7 +151,13 @@ export function SpaceForm({
         )}
         <InlineError message={error} />
         <Button type="submit" full disabled={busy}>
-          {busy ? 'Please wait…' : mode === 'create' ? 'Create shared space' : 'Join shared space'}
+          {busy
+            ? 'Please wait…'
+            : mode === 'create'
+              ? solo
+                ? 'Create my space'
+                : 'Create shared space'
+              : 'Join shared space'}
         </Button>
       </form>
     </>

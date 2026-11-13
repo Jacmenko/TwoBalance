@@ -22,16 +22,19 @@ export async function fetchSpaces(userId: string): Promise<SpaceInfo[]> {
     unwrap<MemberRow[]>(
       supabase.from('members').select('id, couple_id, user_id, display_name').order('created_at'),
     ),
-    unwrap<{ id: string; name: string }[]>(supabase.from('couples').select('id, name')),
+    unwrap<{ id: string; name: string; solo: boolean }[]>(
+      supabase.from('couples').select('id, name, solo'),
+    ),
   ])
-  const names = new Map(couples.map((c) => [c.id, c.name]))
+  const byId = new Map(couples.map((c) => [c.id, c]))
   return members
     .filter((r) => r.user_id === userId)
     .map((me) => {
       const partner = members.find((r) => r.couple_id === me.couple_id && r.user_id !== userId)
       return {
         coupleId: me.couple_id,
-        name: names.get(me.couple_id) ?? 'Our space',
+        name: byId.get(me.couple_id)?.name ?? 'Our space',
+        solo: byId.get(me.couple_id)?.solo ?? false,
         me: toMember(me),
         partner: partner ? toMember(partner) : null,
       }
@@ -41,9 +44,14 @@ export async function fetchSpaces(userId: string): Promise<SpaceInfo[]> {
 export async function createSpace(
   displayName: string,
   spaceName: string,
-): Promise<{ coupleId: string; inviteCode: string }> {
-  const rows = await unwrap<{ couple_id: string; invite_code: string }[]>(
-    supabase.rpc('create_couple', { p_display_name: displayName, p_space_name: spaceName }),
+  solo: boolean,
+): Promise<{ coupleId: string; inviteCode: string | null }> {
+  const rows = await unwrap<{ couple_id: string; invite_code: string | null }[]>(
+    supabase.rpc('create_couple', {
+      p_display_name: displayName,
+      p_space_name: spaceName,
+      p_solo: solo,
+    }),
   )
   return { coupleId: rows[0].couple_id, inviteCode: rows[0].invite_code }
 }

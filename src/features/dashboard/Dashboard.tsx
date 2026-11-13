@@ -1,6 +1,7 @@
 import { useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
-import { BalanceCard } from '@/components/balance/BalanceCard'
+import { BalanceCard, SpentCard } from '@/components/balance/BalanceCard'
 import { ExpenseRow } from '@/components/expenses/ExpenseRow'
 import { Button, EmptyState, ErrorState, Spinner } from '@/components/ui'
 import { useAuth } from '@/features/auth/AuthProvider'
@@ -38,7 +39,12 @@ export function Dashboard() {
     <>
       <header className="pb-4">
         <div className="flex items-center justify-between gap-2">
-          <h1 className="text-xl font-bold">TwoBalance</h1>
+          <div className="min-w-0">
+            <p className="text-xs font-semibold tracking-wide text-emerald-800 uppercase">
+              TwoBalance
+            </p>
+            <h1 className="truncate text-xl font-bold">{space.name}</h1>
+          </div>
           <nav aria-label="Main" className="-mr-2 flex">
             <Link to="/history" className={navLink}>
               <svg {...iconProps}>
@@ -62,16 +68,6 @@ export function Dashboard() {
             </Link>
           </nav>
         </div>
-        <Link
-          to="/spaces"
-          aria-label={`Current space: ${space.name}. Switch or add spaces`}
-          className="inline-flex min-h-11 max-w-full items-center gap-1.5 rounded-full bg-white px-4 text-sm font-semibold text-slate-800 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50"
-        >
-          <span className="truncate">{space.name}</span>
-          <span aria-hidden className="text-slate-500">
-            ▾
-          </span>
-        </Link>
       </header>
 
       {totals.isPending ? (
@@ -81,11 +77,15 @@ export function Dashboard() {
           message={toAppError(totals.error).message}
           onRetry={() => void totals.refetch()}
         />
+      ) : space.solo ? (
+        <SpentCard cents={totals.data.mine + totals.data.other} />
       ) : (
         <BalanceCard cents={balanceCents(totals.data)} />
       )}
 
-      {!space.partner && <InviteBanner key={space.coupleId} coupleId={space.coupleId} />}
+      {!space.partner && (
+        <InviteBanner key={space.coupleId} coupleId={space.coupleId} solo={space.solo} />
+      )}
       {isAnonymous && <SecureNudge />}
 
       <section className="mt-8" aria-labelledby="recent-h">
@@ -143,7 +143,8 @@ function SecureNudge() {
   )
 }
 
-function InviteBanner({ coupleId }: { coupleId: string }) {
+function InviteBanner({ coupleId, solo }: { coupleId: string; solo: boolean }) {
+  const qc = useQueryClient()
   const [code, setCode] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -153,6 +154,8 @@ function InviteBanner({ coupleId }: { coupleId: string }) {
     setError(null)
     try {
       setCode(await regenerateInvite(coupleId))
+      // A solo space becomes a normal shared one once it has an invite.
+      await qc.invalidateQueries({ queryKey: ['space'] })
     } catch (e) {
       setError(toAppError(e).message)
     } finally {
@@ -162,9 +165,13 @@ function InviteBanner({ coupleId }: { coupleId: string }) {
 
   return (
     <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-4">
-      <h2 className="font-semibold">Waiting for your partner</h2>
+      <h2 className="font-semibold">
+        {solo && !code ? 'Just you here' : 'Waiting for your partner'}
+      </h2>
       <p className="mt-1 text-sm text-slate-600">
-        Your partner hasn't joined yet. Generate an invitation code and send it to them.
+        {solo && !code
+          ? 'This space is just for you. Want to split expenses with someone? Invite a partner — the space then becomes a shared 50/50 space.'
+          : "Your partner hasn't joined yet. Generate an invitation code and send it to them."}
       </p>
       {code ? (
         <div className="mt-3">
@@ -177,7 +184,7 @@ function InviteBanner({ coupleId }: { coupleId: string }) {
           onClick={() => void generate()}
           disabled={busy}
         >
-          {busy ? 'Generating…' : 'Get invitation code'}
+          {busy ? 'Generating…' : solo ? 'Invite a partner' : 'Get invitation code'}
         </Button>
       )}
       {error && (

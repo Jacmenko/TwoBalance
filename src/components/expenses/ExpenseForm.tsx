@@ -7,6 +7,8 @@ import type { Category, Expense, ExpenseInput } from '@/types/domain'
 interface Props {
   categories: Category[]
   payerName: string
+  /** Single-person space: no payer and no split to show. */
+  solo?: boolean
   initial?: Expense
   submitLabel: string
   onSubmit: (input: ExpenseInput) => Promise<void>
@@ -16,6 +18,7 @@ interface Props {
 export function ExpenseForm({
   categories,
   payerName,
+  solo = false,
   initial,
   submitLabel,
   onSubmit,
@@ -108,13 +111,17 @@ export function ExpenseForm({
           aria-invalid={!!errors.date}
         />
       </Field>
-      <div>
-        <span className="mb-1 block text-sm font-medium text-slate-700">Paid by</span>
-        <p className="flex min-h-12 items-center rounded-xl bg-slate-100 px-4 text-slate-800">
-          {payerName}
-        </p>
-      </div>
-      <p className="text-sm text-slate-500">Split 50/50 between you and your partner.</p>
+      {!solo && (
+        <>
+          <div>
+            <span className="mb-1 block text-sm font-medium text-slate-700">Paid by</span>
+            <p className="flex min-h-12 items-center rounded-xl bg-slate-100 px-4 text-slate-800">
+              {payerName}
+            </p>
+          </div>
+          <p className="text-sm text-slate-500">Split 50/50 between you and your partner.</p>
+        </>
+      )}
 
       <InlineError message={submitError} />
       <Button type="submit" full disabled={busy}>

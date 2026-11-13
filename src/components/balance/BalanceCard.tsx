@@ -7,6 +7,19 @@ const STYLES = {
   zero: 'bg-slate-100 border-slate-200 text-slate-900',
 } as const
 
+/** Solo spaces have nobody to split with, so show plain spending instead of a balance. */
+export function SpentCard({ cents }: { cents: number }) {
+  return (
+    <section
+      aria-label="Total spent"
+      className="rounded-3xl border border-slate-200 bg-slate-100 p-6 text-slate-900"
+    >
+      <h2 className="text-sm font-medium opacity-80">Total spent</h2>
+      <p className="mt-3 text-5xl font-bold tracking-tight tabular-nums">{formatEur(cents)}</p>
+    </section>
+  )
+}
+
 /** The ONE personal balance card. Shows only the current user's balance. */
 export function BalanceCard({ cents }: { cents: number }) {
   const state = balanceState(cents)

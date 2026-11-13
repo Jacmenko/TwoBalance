@@ -99,7 +99,9 @@ export function Statistics() {
         ) : (
           <div className="space-y-6">
             <section className="rounded-3xl bg-white p-5 ring-1 ring-slate-200">
-              <h2 className="text-sm font-medium text-slate-600">Total shared spending</h2>
+              <h2 className="text-sm font-medium text-slate-600">
+                {space.solo ? 'Total spending' : 'Total shared spending'}
+              </h2>
               <p className="mt-1 text-4xl font-bold tabular-nums">
                 {formatEur(summary.totalCents)}
               </p>
@@ -130,22 +132,24 @@ export function Statistics() {
               </ul>
             </section>
 
-            <section aria-labelledby="by-payer">
-              <h2 id="by-payer" className="mb-3 text-lg font-bold">
-                Paid by
-              </h2>
-              <ul className="space-y-2">
-                {summary.byPayer.map((p) => (
-                  <li
-                    key={p.payerMemberId}
-                    className="flex justify-between rounded-2xl bg-white px-4 py-3 ring-1 ring-slate-200"
-                  >
-                    <span className="font-semibold">{memberName(p.payerMemberId)}</span>
-                    <span className="tabular-nums">{formatEur(p.totalCents)}</span>
-                  </li>
-                ))}
-              </ul>
-            </section>
+            {!space.solo && (
+              <section aria-labelledby="by-payer">
+                <h2 id="by-payer" className="mb-3 text-lg font-bold">
+                  Paid by
+                </h2>
+                <ul className="space-y-2">
+                  {summary.byPayer.map((p) => (
+                    <li
+                      key={p.payerMemberId}
+                      className="flex justify-between rounded-2xl bg-white px-4 py-3 ring-1 ring-slate-200"
+                    >
+                      <span className="font-semibold">{memberName(p.payerMemberId)}</span>
+                      <span className="tabular-nums">{formatEur(p.totalCents)}</span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
           </div>
         )}
       </div>
