@@ -17,6 +17,15 @@ body {
   overflow-x: hidden;
 }
 
+/* `hidden` on both html and body can make body its own scroll container and trap vertical
+   scrolling on iOS/PWA. `clip` hides the overflow without creating a scroll container. */
+@supports (overflow: clip) {
+  html,
+  body {
+    overflow-x: clip;
+  }
+}
+
 /* iOS Safari gives native date inputs an intrinsic width that ignores width/max-width and
    overflows their grid cell. Dropping the native appearance makes them obey the layout. */
 input[type='date'] {

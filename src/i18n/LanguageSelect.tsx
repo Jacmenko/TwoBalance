@@ -1,51 +1,28 @@
 import { useEffect, useRef, useState } from 'react'
 import { useI18n } from './I18nProvider'
 import { LANGUAGES, type Language } from './core'
+import es from './flags/es.svg'
+import gb from './flags/gb.svg'
+import sk from './flags/sk.svg'
 
-/** Simple SVG flags: emoji flags don't render on Windows, SVG looks the same everywhere. */
+// Real flag artwork from the MIT-licensed "flag-icons" set (see flags/LICENSE).
+const FLAG_SRC: Record<Language, string> = { en: gb, es, sk }
+
 export function Flag({
   language,
-  className = 'h-5 w-7',
+  className = 'h-5 w-[27px]',
 }: {
   language: Language
   className?: string
 }) {
   return (
-    <svg
+    <img
+      src={FLAG_SRC[language]}
+      alt=""
       aria-hidden
-      viewBox="0 0 30 20"
-      className={`${className} shrink-0 rounded-[3px] ring-1 ring-black/10`}
-    >
-      {language === 'en' && (
-        <>
-          <rect width="30" height="20" fill="#012169" />
-          <path d="M0 0l30 20M30 0L0 20" stroke="#fff" strokeWidth="4" />
-          <path d="M0 0l30 20M30 0L0 20" stroke="#C8102E" strokeWidth="1.6" />
-          <path d="M15 0v20M0 10h30" stroke="#fff" strokeWidth="6.5" />
-          <path d="M15 0v20M0 10h30" stroke="#C8102E" strokeWidth="4" />
-        </>
-      )}
-      {language === 'es' && (
-        <>
-          <rect width="30" height="20" fill="#AA151B" />
-          <rect y="5" width="30" height="10" fill="#F1BF00" />
-        </>
-      )}
-      {language === 'sk' && (
-        <>
-          <rect width="30" height="6.67" fill="#fff" />
-          <rect y="6.67" width="30" height="6.67" fill="#0B4EA2" />
-          <rect y="13.33" width="30" height="6.67" fill="#EE1C25" />
-          <path
-            d="M6 4h8v7.5c0 2.8-2.2 4.4-4 5.2-1.8-.8-4-2.4-4-5.2z"
-            fill="#EE1C25"
-            stroke="#fff"
-            strokeWidth="1"
-          />
-          <path d="M10 6v8M7.6 8.2h4.8M8.1 10.4h3.8" stroke="#fff" strokeWidth="1" />
-        </>
-      )}
-    </svg>
+      draggable={false}
+      className={`${className} shrink-0 rounded-[3px] object-cover ring-1 ring-black/10`}
+    />
   )
 }
 
